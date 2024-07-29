@@ -1,10 +1,8 @@
 {
 	"required": true,
-	"package": "com.example.mixin.client",
+	"package": "com.hz6826.clockin.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"ExampleClientMixin"
-	],
+	"mixins": [],
 	"injectors": {
 		"defaultRequire": 1
 	}
