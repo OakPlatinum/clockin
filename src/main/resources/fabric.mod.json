@@ -11,7 +11,7 @@
 		"homepage": "https://mln.hz6826.com.cn/",
 		"sources": "https://github.com/OakPlatinum/clockin"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT License",
 	"icon": "assets/clockin/icon.png",
 	"environment": "*",
 	"entrypoints": {
