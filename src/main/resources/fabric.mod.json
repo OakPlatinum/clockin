@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"com.hz6826.clockin.ClockIn"
+		],
+		"client": [
+			"com.hz6826.clockin.client.ClockInClient"
 		]
 	},
 	"mixins": [
