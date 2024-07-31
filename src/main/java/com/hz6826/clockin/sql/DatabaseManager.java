@@ -1,4 +1,12 @@
 package com.hz6826.clockin.sql;
 
-public interface DatabaseManager {
+import java.sql.Connection;
+
+interface DatabaseManager {
+    boolean ping();
+    void reconnecting();
+    void createTables();
+    void dropTables();
+    Connection getConn();
+    Connection getConn(int timeout);
 }

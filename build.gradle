@@ -50,6 +50,9 @@ dependencies {
 	modImplementation include("com.github.Lortseam.completeconfig:base:${project.completeconfig_version}")
 
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+	implementation(include("org.xerial:sqlite-jdbc:${project.sqlite_version}"))
+	implementation(include("mysql:mysql-connector-java:${project.mysql_version}"))
 	
 }
 

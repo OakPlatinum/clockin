@@ -25,6 +25,7 @@ public class BasicConfig extends Config {
         @ConfigEntry private String mysqlUsername = "root";
         @ConfigEntry private String mysqlPassword = "password";
         @ConfigEntry private String mysqlDatabase = "clockin";
+        @ConfigEntry private boolean mysqlUseSSL = false;
 
         public String getMysqlHost() { return mysqlHost; }
         public void setMysqlHost(String mysqlHost) { this.mysqlHost = mysqlHost;}
@@ -36,6 +37,13 @@ public class BasicConfig extends Config {
         public void setMysqlPassword(String mysqlPassword) { this.mysqlPassword = mysqlPassword;}
         public String getMysqlDatabase() { return mysqlDatabase;}
         public void setMysqlDatabase(String mysqlDatabase) { this.mysqlDatabase = mysqlDatabase;}
+        public boolean getMysqlUseSSL() { return mysqlUseSSL; }
+        public void setMysqlUseSSL(boolean mysqlUseSSL) { this.mysqlUseSSL = mysqlUseSSL; }
+
+        public static MySQLConfig config = new MySQLConfig();
+        public static MySQLConfig getConfig() {
+            return config;
+        }
     }
 
     @Transitive
@@ -46,5 +54,15 @@ public class BasicConfig extends Config {
         public String getSqliteFilePath() { return sqliteFilePath; }
         public void setSqliteFilePath(String sqliteFilePath) { this.sqliteFilePath = sqliteFilePath; }
 
+        public static SQLiteConfig config = new SQLiteConfig();
+        public static SQLiteConfig getConfig() {
+            return config;
+        }
+
+    }
+
+    static BasicConfig config = new BasicConfig();
+    public static BasicConfig getConfig() {
+        return config;
     }
 }
