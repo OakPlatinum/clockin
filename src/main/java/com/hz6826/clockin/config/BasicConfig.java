@@ -12,7 +12,7 @@ public class BasicConfig extends Config {
     }
 
     @ConfigEntry(comment = "Type of database to use (MySQL or SQLite(W.I.P.))")
-    private String databaseType = "MySQL";
+    private String databaseType = "mysql";
 
     public String getDatabaseType() { return databaseType.toLowerCase();}
     public void setDatabaseType(String databaseType) { this.databaseType = databaseType.toLowerCase();}

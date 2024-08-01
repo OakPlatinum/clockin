@@ -1,11 +1,13 @@
 package com.hz6826.clockin;
 
+import com.hz6826.clockin.config.BasicConfig;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hz6826.clockin.command.CommandManager;
+import com.hz6826.clockin.sql.*;
 
 public class ClockIn implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -21,7 +23,13 @@ public class ClockIn implements ModInitializer {
 
 		LOGGER.info("Clock In was loaded successfully!");
 
+		// Initialize config, command manager, and database manager
+		BasicConfig config = BasicConfig.getConfig();
+		config.load();
 		CommandManager commandManager = new CommandManager();
+		if (config.getDatabaseType().equals("mysql")) {
+			DatabaseManager databaseManager = new MySQLDatabaseManager();
+		}
 
 	}
 }

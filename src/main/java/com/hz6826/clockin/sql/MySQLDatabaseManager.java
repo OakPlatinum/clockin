@@ -1,7 +1,7 @@
 package com.hz6826.clockin.sql;
 
 import java.sql.*;
-import java.util.UUID;
+import java.util.*;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
@@ -11,7 +11,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
     private Connection conn;
     private String url;
 
-    public void DatabaseManager() {
+    public MySQLDatabaseManager() {
         String host = BasicConfig.MySQLConfig.getConfig().getMysqlHost();
         int port = BasicConfig.MySQLConfig.getConfig().getMysqlPort();
         String database = BasicConfig.MySQLConfig.getConfig().getMysqlDatabase();
@@ -99,6 +99,8 @@ public class MySQLDatabaseManager implements DatabaseManager{
         if (user == null) {
             user = new User(uuid, playerName, 0, 0);
             user.save();
+        } else if (!Objects.equals(user.getPlayerName(), playerName)) {
+            user.setPlayerName(playerName);
         }
         return user;
     }
@@ -135,14 +137,41 @@ public class MySQLDatabaseManager implements DatabaseManager{
 
     public void updateUser(User user) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE users SET player_name =?, balance =?, raffle_ticket =? WHERE uuid =?")) {
-//            preparedStatement.setInt(1, user.getClockInCount());
-//            preparedStatement.setInt(2, user.getTotalClockInTime());
-//            preparedStatement.setString(3, user.getUuid());
-            // TODO
+            preparedStatement.setString(1, user.getPlayerName());
+            preparedStatement.setDouble(2, user.getBalance());
+            preparedStatement.setInt(3, user.getRaffleTicket());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to update user: " + e.getMessage());
         }
+    }
+
+    public List<User> getUsersSortedByBalance() {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users ORDER BY balance DESC")) {
+            ResultSet rs = preparedStatement.executeQuery();
+            List<User> users = new ArrayList<>();
+            while (rs.next()) {
+                users.add(new User(rs.getInt("id"), rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket")));
+            }
+            return users;
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get users sorted by balance: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public List<User> getUsersSortedByRaffleTicket() {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users ORDER BY raffle_ticket DESC")) {
+            ResultSet rs = preparedStatement.executeQuery();
+            List<User> users = new ArrayList<>();
+            while (rs.next()) {
+                users.add(new User(rs.getInt("id"), rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket")));
+            }
+            return users;
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get users sorted by raffle ticket: " + e.getMessage());
+        }
+        return null;
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.hz6826.clockin.sql;
 
 import java.sql.Connection;
 
-interface DatabaseManager {
+public interface DatabaseManager {
     boolean ping();
     void reconnecting();
     void createTables();
