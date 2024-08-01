@@ -1,6 +1,8 @@
 package com.hz6826.clockin;
 
 import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.sql.model.interfaces.UserInterface;
+import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -8,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.hz6826.clockin.command.CommandManager;
 import com.hz6826.clockin.sql.*;
+
+import java.sql.Date;
 
 public class ClockIn implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -29,6 +33,11 @@ public class ClockIn implements ModInitializer {
 		CommandManager commandManager = new CommandManager();
 		if (config.getDatabaseType().equals("mysql")) {
 			DatabaseManager databaseManager = new MySQLDatabaseManager();
+			databaseManager.createTables();
+			UserWithAccountAbstract user = databaseManager.getOrCreateUser("fe736038-102e-365b-a97e-eabc472944ec", "Player31");
+			LOGGER.info(user.getPlayerName());
+			user.setBalance(100.5);
+			user.setRaffleTicket(13);
 		}
 
 	}

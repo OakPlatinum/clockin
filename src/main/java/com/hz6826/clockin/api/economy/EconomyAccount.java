@@ -3,8 +3,14 @@ package com.hz6826.clockin.api.economy;
 public interface EconomyAccount {
     double getBalance();
     int getRaffleTicket();
+
+    int getMakeupCard();
+
     void setBalance(double balance);
     void setRaffleTicket(int raffleTicket);
+
+    void setMakeupCard(int makeupCard);
+
     int getBalanceRank();
     int getRaffleTicketRank();
     void transferBalance(double amount, EconomyAccount toAccount);

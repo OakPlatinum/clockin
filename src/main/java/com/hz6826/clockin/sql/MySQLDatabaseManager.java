@@ -1,15 +1,19 @@
 package com.hz6826.clockin.sql;
 
 import java.sql.*;
+import java.sql.Date;
 import java.util.*;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.sql.model.interfaces.UserInterface;
+import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql.model.mysql.DailyClockInRecord;
 import com.hz6826.clockin.sql.model.mysql.User;
 
 public class MySQLDatabaseManager implements DatabaseManager{
     private Connection conn;
-    private String url;
+    private final String url;
 
     public MySQLDatabaseManager() {
         String host = BasicConfig.MySQLConfig.getConfig().getMysqlHost();
@@ -45,14 +49,17 @@ public class MySQLDatabaseManager implements DatabaseManager{
 
     @Override
     public void createTables() {
-        User.createTable();
+        executeUpdate(User.createTableSQL());
+        executeUpdate(DailyClockInRecord.createTableSQL());
     }
 
     @Override
     public void dropTables() {
-
+        executeUpdate("DROP TABLE IF EXISTS users");
+        executeUpdate("DROP TABLE IF EXISTS daily_clock_in_records");
     }
 
+    @Override
     public void executeUpdate(String sql) {
         try {
             Statement stmt = getConn().createStatement();
@@ -63,6 +70,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         }
     }
 
+    @Override
     public ResultSet executeQuery(PreparedStatement preparedStatement) {
         try {
             return preparedStatement.executeQuery();
@@ -77,7 +85,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         int initialTimeout = timeout;
         while (true) {
             try {
-                if (conn != null && conn.isValid(timeout)) {
+                if (conn != null && conn.isValid(timeout*1000)) {
                     return conn;
                 } else {
                     if (timeout > 100) {
@@ -94,10 +102,11 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     // User methods
+    @Override
     public User getOrCreateUser(String uuid, String playerName) {
         User user = getUserByUUID(uuid);
         if (user == null) {
-            user = new User(uuid, playerName, 0, 0);
+            user = new User(uuid, playerName, 0, 0, 0);
             user.save();
         } else if (!Objects.equals(user.getPlayerName(), playerName)) {
             user.setPlayerName(playerName);
@@ -105,12 +114,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return user;
     }
 
+    @Override
     public User getUserByUUID(String uuid){
         try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users WHERE uuid =?")) {
             preparedStatement.setString(1, uuid);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
-                return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getInt("clock_in_count"), rs.getInt("total_clock_in_time"));
+                return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card"));
             } else {
                 return null;
             }
@@ -120,12 +130,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return null;
     }
 
+    @Override
     public User getUserByName(String playerName) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users WHERE player_name =?")) {
             preparedStatement.setString(1, playerName);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
-                return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getInt("clock_in_count"), rs.getInt("total_clock_in_time"));
+                return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card"));
             } else {
                 return null;
             }
@@ -135,6 +146,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return null;
     }
 
+    @Override
     public void updateUser(User user) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE users SET player_name =?, balance =?, raffle_ticket =? WHERE uuid =?")) {
             preparedStatement.setString(1, user.getPlayerName());
@@ -146,12 +158,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
         }
     }
 
-    public List<User> getUsersSortedByBalance() {
+    @Override
+    public List<UserWithAccountAbstract> getUsersSortedByBalance() {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users ORDER BY balance DESC")) {
             ResultSet rs = preparedStatement.executeQuery();
-            List<User> users = new ArrayList<>();
+            List<UserWithAccountAbstract> users = new ArrayList<>();
             while (rs.next()) {
-                users.add(new User(rs.getInt("id"), rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket")));
+                users.add(new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card")));
             }
             return users;
         } catch (SQLException e) {
@@ -160,12 +173,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return null;
     }
 
-    public List<User> getUsersSortedByRaffleTicket() {
+    @Override
+    public List<UserWithAccountAbstract> getUsersSortedByRaffleTicket() {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM users ORDER BY raffle_ticket DESC")) {
             ResultSet rs = preparedStatement.executeQuery();
-            List<User> users = new ArrayList<>();
+            List<UserWithAccountAbstract> users = new ArrayList<>();
             while (rs.next()) {
-                users.add(new User(rs.getInt("id"), rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket")));
+                users.add(new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card")));
             }
             return users;
         } catch (SQLException e) {
@@ -174,13 +188,61 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return null;
     }
 
+    // Daily Clock In Record methods
+    // daily-clock_in_records table
+    // id|INT NOT NULL AUTO_INCREMENT
+    // date|DATE
+    // uuid|VARCHAR(36)
+    // time|TIME
+    @Override
+    public DailyClockInRecord getDailyClockInRecordOrNull(String uuid, Date date) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM daily_clock_in_records WHERE date =?")) {
+            preparedStatement.setDate(1, date);
+            ResultSet rs = preparedStatement.executeQuery();
+            int cnt = 1;
+            while (rs.next()) {
+                if (rs.getString("uuid").equals(uuid)) {
+                    return new DailyClockInRecord(rs.getDate("date"), rs.getString("uuid"), rs.getTime("time"), cnt);
+                }
+                cnt++;
+            }
+            return null;
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get daily clock in record: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteDailyClockInRecord(DailyClockInRecord record) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("DELETE FROM daily_clock_in_records WHERE date =? AND uuid =?")) {
+            preparedStatement.setDate(1, record.getDate());
+            preparedStatement.setString(2, record.getUuid());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to delete daily clock in record: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void dailyClockIn(String uuid, Date date, Time time){
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO daily_clock_in_records (date, uuid, time) VALUES (?,?,?)")) {
+            preparedStatement.setDate(1, date);
+            preparedStatement.setString(2, uuid);
+            preparedStatement.setTime(3, time);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to daily clock in: " + e.getMessage());
+        }
+    }
+
     @Override
     public Connection getConn() {
         return getConn(10);
     }
 
-    private static final MySQLDatabaseManager instance = new MySQLDatabaseManager();
-    public static MySQLDatabaseManager getInstance() {
+    private static final DatabaseManager instance = new MySQLDatabaseManager();
+    public static DatabaseManager getInstance() {
         return instance;
     }
 }
