@@ -4,11 +4,14 @@ import com.hz6826.clockin.sql.model.interfaces.UserInterface;
 import com.hz6826.clockin.sql.MySQLDatabaseManager;
 import com.hz6826.clockin.api.economy.EconomyAccount;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@Environment(EnvType.SERVER)
 public class User extends UserWithAccountAbstract {
     private final String uuid;
     private String playerName;

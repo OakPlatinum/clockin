@@ -10,9 +10,13 @@ public class CommandManager {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> dispatcher.register(literal("clockin")
                 .executes(context -> {
                     context.getSource().sendFeedback(() -> Text.translatable("command.clockin.clockin.loading"), false);
-
                     return 1;
                 }))));
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> dispatcher.register(literal("")
+                .executes(context -> {
+                     context.getSource().sendFeedback(() -> Text.translatable("command.clockin.clockout.loading"), false);
+                     return 1;
+                 }))));
 
     }
 }

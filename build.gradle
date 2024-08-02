@@ -46,7 +46,7 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation include("io.github.cottonmc:LibGui:${project.libgui_version}")
+	// modImplementation include("io.github.cottonmc:LibGui:${project.libgui_version}")
 	modImplementation include("com.github.Lortseam.completeconfig:base:${project.completeconfig_version}")
 
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"

@@ -1,10 +1,13 @@
 package com.hz6826.clockin.sql.model.mysql;
 
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.sql.Date;
 import java.sql.Time;
 
+@Environment(EnvType.SERVER)
 public class DailyClockInRecord implements DailyClockInRecordInterface {
     private final Date date;
     private final String uuid;

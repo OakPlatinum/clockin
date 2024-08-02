@@ -6,25 +6,29 @@ import java.util.*;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
-import com.hz6826.clockin.sql.model.interfaces.UserInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.hz6826.clockin.sql.model.mysql.DailyClockInRecord;
 import com.hz6826.clockin.sql.model.mysql.User;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
+@Environment(EnvType.SERVER)
 public class MySQLDatabaseManager implements DatabaseManager{
-    private Connection conn;
     private final String url;
+    private final String username;
+    private final String password;
 
     public MySQLDatabaseManager() {
-        String host = BasicConfig.MySQLConfig.getConfig().getMysqlHost();
-        int port = BasicConfig.MySQLConfig.getConfig().getMysqlPort();
-        String database = BasicConfig.MySQLConfig.getConfig().getMysqlDatabase();
-        boolean useSSL = BasicConfig.MySQLConfig.getConfig().getMysqlUseSSL();
+        String host = BasicConfig.getConfig().getMysqlHost();
+        int port = BasicConfig.getConfig().getMysqlPort();
+        String database = BasicConfig.getConfig().getMysqlDatabase();
+        String useSSL = BasicConfig.getConfig().getMysqlUseSSL();
         url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
-        String user = BasicConfig.MySQLConfig.getConfig().getMysqlUsername();
-        String password = BasicConfig.MySQLConfig.getConfig().getMysqlPassword();
+        username = BasicConfig.getConfig().getMysqlUsername();
+        password = BasicConfig.getConfig().getMysqlPassword();
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            Connection conn = getConn();
+            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -34,17 +38,6 @@ public class MySQLDatabaseManager implements DatabaseManager{
     public boolean ping() {
         // TODO: ping method
         return true;
-    }
-
-    @Override
-    public void reconnecting() {
-        String user = BasicConfig.MySQLConfig.getConfig().getMysqlUsername();
-        String password = BasicConfig.MySQLConfig.getConfig().getMysqlPassword();
-        try {
-            conn = DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -80,34 +73,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
         }
     }
 
-    @Override
-    public Connection getConn(int timeout) {
-        int initialTimeout = timeout;
-        while (true) {
-            try {
-                if (conn != null && conn.isValid(timeout*1000)) {
-                    return conn;
-                } else {
-                    if (timeout > 100) {
-                        throw new SQLException("Connection timeout after " + initialTimeout + "ms.");
-                    } else {
-                        timeout += 10;
-                    }
-                }
-            } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to get connection: " + e.getMessage());
-                timeout += 10;
-            }
-        }
-    }
-
     // User methods
     @Override
     public User getOrCreateUser(String uuid, String playerName) {
         User user = getUserByUUID(uuid);
         if (user == null) {
             user = new User(uuid, playerName, 0, 0, 0);
-            user.save();
+            this.updateUser(user);  // TODO
         } else if (!Objects.equals(user.getPlayerName(), playerName)) {
             user.setPlayerName(playerName);
         }
@@ -120,6 +92,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setString(1, uuid);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
+                ClockIn.LOGGER.warn(uuid);
                 return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card"));
             } else {
                 return null;
@@ -152,6 +125,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setString(1, user.getPlayerName());
             preparedStatement.setDouble(2, user.getBalance());
             preparedStatement.setInt(3, user.getRaffleTicket());
+            preparedStatement.setString(4, user.getUuid());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to update user: " + e.getMessage());
@@ -237,8 +211,14 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public Connection getConn() {
-        return getConn(10);
+    public Connection getConn() throws SQLException {
+        try {
+            // conn.setAutoCommit(true);
+            return DriverManager.getConnection(url, username, password);
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get connection: " + e.getMessage());
+            throw new SQLException("Failed to get connection.");
+        }
     }
 
     private static final DatabaseManager instance = new MySQLDatabaseManager();

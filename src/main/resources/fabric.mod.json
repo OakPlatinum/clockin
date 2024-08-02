@@ -18,6 +18,9 @@
 		"main": [
 			"com.hz6826.clockin.ClockIn"
 		],
+		"server": [
+			"com.hz6826.clockin.server.ClockInServer"
+		],
 		"client": [
 			"com.hz6826.clockin.client.ClockInClient"
 		]
