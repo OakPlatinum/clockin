@@ -79,7 +79,14 @@ public class MySQLDatabaseManager implements DatabaseManager{
         User user = getUserByUUID(uuid);
         if (user == null) {
             user = new User(uuid, playerName, 0, 0, 0);
-            this.updateUser(user);  // TODO
+            try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO users (uuid, player_name, balance, raffle_ticket, makeup_card) VALUES (?,?, 0, 0, 0)")) {
+                preparedStatement.setString(1, uuid);
+                preparedStatement.setString(2, playerName);
+                preparedStatement.executeUpdate();
+                ClockIn.LOGGER.info("Created user " + playerName + " [" + uuid + "]");
+            } catch (SQLException e) {
+                ClockIn.LOGGER.error("Failed to create user: " + e.getMessage());
+            }
         } else if (!Objects.equals(user.getPlayerName(), playerName)) {
             user.setPlayerName(playerName);
         }

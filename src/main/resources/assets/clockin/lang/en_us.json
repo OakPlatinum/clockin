@@ -1,3 +1,15 @@
 {
-  "command.clockin.clockin.loading": "Loading Clock In GUI!"
+  "command.clockin.formatter.time": "HH:mm:ss",
+  "command.clockin.clockin.loading": "Loading Clock In GUI!",
+  "command.clockin.init.headline": "=======Clock In=======",
+  "command.clockin.init.headline2": "      By: Oak Platinum",
+  "command.clockin.init.welcome": "欢迎回来，%s！",
+  "command.clockin.init.balance": "您当前账户余额为%d，排名为%d。",
+  "command.clockin.init.clockin.require": "您今天还没有签到，点击 %s 进行签到！",
+  "command.clockin.init.clockin.button": "[签到]",
+  "command.clockin.init.foot": "====================",
+  "command.clockin.dailyclockin.failed": "日签失败，请稍后重试！",
+  "command.clockin.dailyclockin.success": "签到成功！您是今天第%d个签到的玩家！",
+  "command.clockin.dailyclockin.success.reward": "",
+  "command.clockin.dailyclockin.already": ""
 }
