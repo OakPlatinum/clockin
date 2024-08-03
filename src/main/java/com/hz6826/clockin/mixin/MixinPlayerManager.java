@@ -4,7 +4,6 @@ import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -28,7 +27,7 @@ public class MixinPlayerManager {
     }
 
     @Inject(method = "onPlayerConnect", at = @At("HEAD"))
-    public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+    public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         if(ClockInServer.DATABASE_MANAGER != null){
             this.setClockinUser(ClockInServer.DATABASE_MANAGER.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName())));
         } else {
