@@ -2,7 +2,9 @@ package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -11,6 +13,7 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static net.minecraft.server.command.CommandManager.*;
@@ -37,6 +40,8 @@ public class CommandManager {
                                         return -1;
                                     } else {
                                         DailyClockInRecordInterface finalDailyClockInRecord = dailyClockInRecord;
+                                        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNull("");
+                                        // TODO: Add reward
                                         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success", Text.literal(String.valueOf(finalDailyClockInRecord.getRank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN), false);
                                         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.reward", ""), false); // TODO: Add reward
                                     }

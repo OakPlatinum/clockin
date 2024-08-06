@@ -1,8 +1,9 @@
 package com.hz6826.clockin.sql;
 
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
-import com.hz6826.clockin.sql.model.mysql.DailyClockInRecord;
+import com.hz6826.clockin.sql.model.mysql.Reward;
 import com.hz6826.clockin.sql.model.mysql.User;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -23,7 +24,7 @@ public interface DatabaseManager {
 
     User getUserByName(String playerName);
 
-    void updateUser(User user);
+    void updateUser(UserWithAccountAbstract user);
 
     List<UserWithAccountAbstract> getUsersSortedByBalance();
 
@@ -31,7 +32,7 @@ public interface DatabaseManager {
 
     DailyClockInRecordInterface getDailyClockInRecordOrNull(String uuid, Date date);
 
-    void deleteDailyClockInRecord(DailyClockInRecord record);
+    void deleteDailyClockInRecord(DailyClockInRecordInterface record);
 
     void dailyClockIn(String uuid, Date date, Time time);
 
@@ -40,4 +41,21 @@ public interface DatabaseManager {
     void executeUpdate(String sql);
 
     ResultSet executeQuery(PreparedStatement preparedStatement);
+
+    // Reward methods
+    // public static @NotNull String createTableSQL() {
+    //        return "CREATE TABLE IF NOT EXISTS rewards (" +
+    //                "id INT NOT NULL AUTO_INCREMENT," +
+    //                "key VARCHAR(255) NOT NULL," +
+    //                "translatable_key VARCHAR(255) NOT NULL," +
+    //                "item_list_serialized TEXT," +
+    //                "money DOUBLE," +
+    //                "raffle_tickets INT," +
+    //                "makeup_cards INT," +
+    //                "PRIMARY KEY (id)" +
+    //                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    //    }
+    Reward getRewardOrNull(String key);
+
+    void createOrUpdateReward(RewardInterface reward);
 }

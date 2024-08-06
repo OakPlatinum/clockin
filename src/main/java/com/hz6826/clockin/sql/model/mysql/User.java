@@ -177,6 +177,6 @@ public class User extends UserWithAccountAbstract {
                 "raffle_ticket INT(11) NOT NULL DEFAULT 0," +
                 "makeup_card INT(11) NOT NULL DEFAULT 0," +
                 "PRIMARY KEY (id)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     }
 }

@@ -6,8 +6,11 @@ import java.util.*;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.hz6826.clockin.sql.model.mysql.DailyClockInRecord;
+import com.hz6826.clockin.sql.model.mysql.Reward;
 import com.hz6826.clockin.sql.model.mysql.User;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -44,12 +47,14 @@ public class MySQLDatabaseManager implements DatabaseManager{
     public void createTables() {
         executeUpdate(User.createTableSQL());
         executeUpdate(DailyClockInRecord.createTableSQL());
+        executeUpdate(Reward.createTableSQL());
     }
 
     @Override
     public void dropTables() {
         executeUpdate("DROP TABLE IF EXISTS users");
         executeUpdate("DROP TABLE IF EXISTS daily_clock_in_records");
+        executeUpdate("DROP TABLE IF EXISTS rewards");
     }
 
     @Override
@@ -127,7 +132,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public void updateUser(User user) {
+    public void updateUser(UserWithAccountAbstract user) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE users SET player_name =?, balance =?, raffle_ticket =? WHERE uuid =?")) {
             preparedStatement.setString(1, user.getPlayerName());
             preparedStatement.setDouble(2, user.getBalance());
@@ -195,7 +200,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public void deleteDailyClockInRecord(DailyClockInRecord record) {
+    public void deleteDailyClockInRecord(DailyClockInRecordInterface record) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("DELETE FROM daily_clock_in_records WHERE date =? AND uuid =?")) {
             preparedStatement.setDate(1, record.getDate());
             preparedStatement.setString(2, record.getUuid());
@@ -225,6 +230,54 @@ public class MySQLDatabaseManager implements DatabaseManager{
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to get connection: " + e.getMessage());
             throw new SQLException("Failed to get connection.");
+        }
+    }
+
+    // Reward methods
+    // public static @NotNull String createTableSQL() {
+    //        return "CREATE TABLE IF NOT EXISTS rewards (" +
+    //                "id INT NOT NULL AUTO_INCREMENT," +
+    //                "key VARCHAR(255) NOT NULL," +
+    //                "translatable_key VARCHAR(255) NOT NULL," +
+    //                "item_list_serialized TEXT," +
+    //                "money DOUBLE," +
+    //                "raffle_tickets INT," +
+    //                "makeup_cards INT," +
+    //                "PRIMARY KEY (id)" +
+    //                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    //    }
+    @Override
+    public Reward getRewardOrNull(String key) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM rewards WHERE key = ?")) {
+            preparedStatement.setString(1, key);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return new Reward(rs.getString("key"), rs.getString("translatable_key"), rs.getString("item_list_serialized"), rs.getDouble("money"), rs.getInt("raffle_tickets"), rs.getInt("makeup_cards"));
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get reward: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public void createOrUpdateReward(RewardInterface reward) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (key, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =?")) {
+            preparedStatement.setString(1, reward.getKey());
+            preparedStatement.setString(2, reward.getTranslatableKey());
+            preparedStatement.setString(3, reward.getItemListSerialized());
+            preparedStatement.setDouble(4, reward.getMoney());
+            preparedStatement.setInt(5, reward.getRaffleTickets());
+            preparedStatement.setInt(6, reward.getMakeupCards());
+            preparedStatement.setString(7, reward.getItemListSerialized());
+            preparedStatement.setDouble(8, reward.getMoney());
+            preparedStatement.setInt(9, reward.getRaffleTickets());
+            preparedStatement.setInt(10, reward.getMakeupCards());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to create or update reward: " + e.getMessage());
         }
     }
 
