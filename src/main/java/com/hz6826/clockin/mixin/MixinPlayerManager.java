@@ -38,11 +38,11 @@ public abstract class MixinPlayerManager{
             if(ClockInServer.DATABASE_MANAGER.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
                 Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
                         .withColor(Formatting.AQUA) // 设置文本颜色
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin clockin"))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin dailyclockin"))
                 );
                 player.sendMessage(Text.translatable("command.clockin.init.clockin.require", clockInButton));
             }
-            player.sendMessage(Text.translatable("command.clockin.init.foot"));
+            player.sendMessage(Text.translatable("command.clockin.init.foot").formatted(Formatting.AQUA));
         } else {
             ClockIn.LOGGER.error("Failed to attach Clock In user.");
         }

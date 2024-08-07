@@ -31,7 +31,7 @@ public class ClockIn implements ModInitializer {
 		// Initialize config, command manager, and database manager
 		// BasicConfig config = BasicConfig.getConfig();
 		// config.load();
-		CommandManager commandManager = new CommandManager();
+		// CommandManager commandManager = new CommandManager();
 
 	}
 }

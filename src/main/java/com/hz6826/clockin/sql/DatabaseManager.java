@@ -3,7 +3,6 @@ package com.hz6826.clockin.sql;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
-import com.hz6826.clockin.sql.model.mysql.Reward;
 import com.hz6826.clockin.sql.model.mysql.User;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -55,7 +54,7 @@ public interface DatabaseManager {
     //                "PRIMARY KEY (id)" +
     //                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     //    }
-    Reward getRewardOrNull(String key);
+    RewardInterface getRewardOrNew(String key);
 
-    void createOrUpdateReward(RewardInterface reward);
+    RewardInterface createOrUpdateReward(RewardInterface reward);
 }

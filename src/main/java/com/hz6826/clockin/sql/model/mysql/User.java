@@ -153,6 +153,16 @@ public class User extends UserWithAccountAbstract {
     }
 
     @Override
+    public void addMakeupCard(int amount) {
+        this.setMakeupCard(this.getMakeupCard() + amount);
+    }
+
+    @Override
+    public void removeMakeupCard(int amount) {
+        this.setMakeupCard(this.getMakeupCard() - amount);
+    }
+
+    @Override
     public boolean hasEnoughBalance(double amount) {
         return this.getBalance() >= amount;
     }
@@ -160,6 +170,11 @@ public class User extends UserWithAccountAbstract {
     @Override
     public boolean hasEnoughRaffleTicket(int amount) {
         return this.getRaffleTicket() >= amount;
+    }
+
+    @Override
+    public boolean hasMakeupCard() {
+        return getMakeupCard() >= 1;
     }
 
     @Override

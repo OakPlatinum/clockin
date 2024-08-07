@@ -8,9 +8,7 @@ public interface EconomyAccount {
 
     void setBalance(double balance);
     void setRaffleTicket(int raffleTicket);
-
     void setMakeupCard(int makeupCard);
-
     int getBalanceRank();
     int getRaffleTicketRank();
     void transferBalance(double amount, EconomyAccount toAccount);
@@ -19,6 +17,9 @@ public interface EconomyAccount {
     void subtractBalance(double amount);
     void addRaffleTicket(int amount);
     void removeRaffleTicket(int amount);
+    void addMakeupCard(int amount);
+    void removeMakeupCard(int amount);
     boolean hasEnoughBalance(double amount);
     boolean hasEnoughRaffleTicket(int amount);
+    boolean hasMakeupCard();
 }

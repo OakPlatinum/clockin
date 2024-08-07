@@ -28,4 +28,6 @@ public interface RewardInterface {
     void setRaffleTickets(int raffleTickets);
 
     void setMakeupCards(int makeupCards);
+
+    void update();
 }

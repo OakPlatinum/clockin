@@ -43,6 +43,12 @@ public class BasicConfig extends Config {
     public String getSqliteFilePath() { return sqliteFilePath; }
     public void setSqliteFilePath(String sqliteFilePath) { this.sqliteFilePath = sqliteFilePath; }
 
+    @ConfigEntry(comment = "Currency name")
+    private String currencyName = "bits";
+
+    public String getCurrencyName() { return currencyName; }
+    public void setCurrencyName(String currencyName) { this.currencyName = currencyName; }
+
     static BasicConfig config = new BasicConfig();
     public static BasicConfig getConfig() {
         return config;

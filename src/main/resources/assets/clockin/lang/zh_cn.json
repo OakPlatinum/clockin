@@ -1,5 +1,5 @@
 {
-  "command.clockin.formatter.time": "HH:mm:ss",
+  "command.clockin.formatter.time": "hh:mm:ss",
   "command.clockin.clockin.loading": "正在加载Clock In界面！",
   "command.clockin.init.headline": "=======Clock In=======",
   "command.clockin.init.headline2": "      By: Oak Platinum",
@@ -11,5 +11,14 @@
   "command.clockin.dailyclockin.failed": "日签失败，请稍后重试！",
   "command.clockin.dailyclockin.success": "签到成功！您是今天第 %d 个签到的玩家！",
   "command.clockin.dailyclockin.success.reward": "日签奖励：%s",
-  "command.clockin.dailyclockin.already": "您今天已经签到过了！您今天是第 %d 个签到的，签到时间：%s。"
+  "command.clockin.dailyclockin.already": "您今天已经签到过了！您今天是第 %d 个签到的，签到时间：%s。",
+  "command.clockin.reward.null": "空",
+  "command.clockin.reward.set.item.success": "成功设置 %s 的奖励物品！",
+  "command.clockin.reward.set.money.success": "成功设置 %s 的奖励金额为 %d %s！",
+  "command.clockin.reward.set.raffle_ticket.success": "成功设置 %s 的抽奖券为%d张！",
+  "command.clockin.reward.set.makeup_card.success": "成功设置 %s 的补签卡为%d张！",
+  "command.clockin.reward.title.item": "物品：%s",
+  "command.clockin.reward.title.money": "金钱：%s %s",
+  "command.clockin.reward.title.raffle_ticket": "抽奖券：%s 张",
+  "command.clockin.reward.title.makeup_card": "补签卡：%s 张"
 }

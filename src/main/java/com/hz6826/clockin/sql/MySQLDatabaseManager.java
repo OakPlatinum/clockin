@@ -104,7 +104,6 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setString(1, uuid);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
-                ClockIn.LOGGER.warn(uuid);
                 return new User(rs.getString("uuid"), rs.getString("player_name"), rs.getDouble("balance"), rs.getInt("raffle_ticket"), rs.getInt("makeup_card"));
             } else {
                 return null;
@@ -247,14 +246,14 @@ public class MySQLDatabaseManager implements DatabaseManager{
     //                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     //    }
     @Override
-    public Reward getRewardOrNull(String key) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM rewards WHERE key = ?")) {
+    public RewardInterface getRewardOrNew(String key) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM rewards WHERE `key` = ?")) {
             preparedStatement.setString(1, key);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
                 return new Reward(rs.getString("key"), rs.getString("translatable_key"), rs.getString("item_list_serialized"), rs.getDouble("money"), rs.getInt("raffle_tickets"), rs.getInt("makeup_cards"));
             } else {
-                return null;
+                return new Reward(key, "", "", 0, 0, 0);
             }
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to get reward: " + e.getMessage());
@@ -263,8 +262,8 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public void createOrUpdateReward(RewardInterface reward) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (key, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =?")) {
+    public RewardInterface createOrUpdateReward(RewardInterface reward) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (`key`, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =?")) {
             preparedStatement.setString(1, reward.getKey());
             preparedStatement.setString(2, reward.getTranslatableKey());
             preparedStatement.setString(3, reward.getItemListSerialized());
@@ -279,6 +278,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to create or update reward: " + e.getMessage());
         }
+        return getRewardOrNew(reward.getKey());
     }
 
     private static final DatabaseManager instance = new MySQLDatabaseManager();
