@@ -35,6 +35,14 @@ public interface DatabaseManager {
 
     void dailyClockIn(String uuid, Date date, Time time);
 
+    List<DailyClockInRecordInterface> getDailyClockInRecords(Date date);
+
+    int getPlayerDailyClockInCount(String uuid);
+
+    int getPlayerDailyClockInCount(String uuid, int month);
+
+    int getPlayerDailyClockInCount(String uuid, Date start, Date end);
+
     Connection getConn() throws SQLException;
 
     void executeUpdate(String sql);

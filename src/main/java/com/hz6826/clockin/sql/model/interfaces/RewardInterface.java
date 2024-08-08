@@ -30,4 +30,5 @@ public interface RewardInterface {
     void setMakeupCards(int makeupCards);
 
     void update();
+    boolean isNew();
 }

@@ -222,6 +222,67 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
+    public List<DailyClockInRecordInterface> getDailyClockInRecords(Date date) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM daily_clock_in_records WHERE date = ?")) {
+            preparedStatement.setDate(1, date);
+            ResultSet rs = preparedStatement.executeQuery();
+            List<DailyClockInRecordInterface> records = new ArrayList<>();
+            while (rs.next()) {
+                records.add(new DailyClockInRecord(rs.getDate("date"), rs.getString("uuid"), rs.getTime("time"), 1));
+            }
+            return records;
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get daily clock in records: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public int getPlayerDailyClockInCount(String uuid) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM daily_clock_in_records WHERE uuid = ?")) {
+            preparedStatement.setString(1, uuid);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
+    public int getPlayerDailyClockInCount(String uuid, int month) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM daily_clock_in_records WHERE uuid = ? AND MONTH(date) = ?")) {
+            preparedStatement.setString(1, uuid);
+            preparedStatement.setInt(2, month);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
+    public int getPlayerDailyClockInCount(String uuid, Date start, Date end) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM daily_clock_in_records WHERE uuid = ? AND date >= ? AND date <= ?")) {
+            preparedStatement.setString(1, uuid);
+            preparedStatement.setDate(2, start);
+            preparedStatement.setDate(3, end);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
     public Connection getConn() throws SQLException {
         try {
             // conn.setAutoCommit(true);

@@ -4,6 +4,7 @@ import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
@@ -15,6 +16,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,6 +70,16 @@ public class FabricUtils {
             player.giveItemStack(stack);
         }
     }
+    public static void giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player) {
+        for (ItemStack stack : stackList) {
+            giveItem(stack, player);
+        }
+    }
+    public static void giveItem(@NotNull ItemStack stack, PlayerEntity player) {
+        if (!stack.isEmpty()) {
+            player.giveItemStack(stack);
+        }
+    }
     public static Text generateReadableReward(RewardInterface reward){
         MutableText text = Text.empty();
         if(!reward.getItemListSerialized().isBlank()) {
@@ -77,7 +89,7 @@ public class FabricUtils {
                 MutableText itemStackName = (MutableText) itemStack.getName();
                 itemStackName.setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack))));
                 itemStackName.formatted(itemStack.getRarity().formatting);
-                itemText.append(itemStackName).append("x" + itemStack.getCount() + "  ");
+                itemText.append(itemStackName).append(Text.literal("x"+itemStack.getCount()+"  ").formatted(Formatting.GRAY));
             }
             text.append(Text.translatable("command.clockin.reward.title.item", itemText)).append("\n");
         }

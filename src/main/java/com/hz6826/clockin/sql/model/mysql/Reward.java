@@ -103,6 +103,11 @@ public class Reward implements RewardInterface {
         MySQLDatabaseManager.getInstance().createOrUpdateReward(this);
     }
 
+    @Override
+    public boolean isNew() {
+        return getItemListSerialized().isBlank() || getMoney() == 0 && getRaffleTickets() == 0 && getMakeupCards() == 0;
+    }
+
     @Contract(pure = true)
     public static @NotNull String createTableSQL() {
         return "CREATE TABLE IF NOT EXISTS rewards (" +

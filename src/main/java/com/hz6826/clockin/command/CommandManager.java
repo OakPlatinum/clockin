@@ -6,11 +6,12 @@ import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
-import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -46,10 +47,11 @@ public class CommandManager {
                                         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.failed").formatted(Formatting.RED), false);
                                         return -1;
                                     } else {
+                                        // Give Daily Reward
                                         DailyClockInRecordInterface finalDailyClockInRecord = dailyClockInRecord;
                                         RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew("daily_reward");
                                         Text rewardText = Text.translatable("command.clockin.reward.null");
-                                        if(reward != null) {
+                                        if(!reward.isNew()) {
                                             FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), context.getSource().getPlayerOrThrow());
                                             UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
                                             user.addBalance(reward.getMoney());
@@ -60,6 +62,32 @@ public class CommandManager {
                                         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success", Text.literal(String.valueOf(finalDailyClockInRecord.getRank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN), false);
                                         Text finalReward_string = rewardText;
                                         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.reward", finalReward_string), false);
+                                        // Give Cumulate Reward
+                                        int cumulateCount = ClockInServer.DATABASE_MANAGER.getPlayerDailyClockInCount(context.getSource().getPlayerOrThrow().getUuidAsString());
+                                        RewardInterface cumulateReward = ClockInServer.DATABASE_MANAGER.getRewardOrNew("cumulate_reward_" + cumulateCount);
+                                        if(!cumulateReward.isNew()) {
+                                            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(cumulateReward.getItemListSerialized()), context.getSource().getPlayerOrThrow());
+                                            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+                                            user.addBalance(cumulateReward.getMoney());
+                                            user.addRaffleTicket(cumulateReward.getRaffleTickets());
+                                            user.addMakeupCard(cumulateReward.getMakeupCards());
+                                            final Text cumulateRewardText = FabricUtils.generateReadableReward(cumulateReward);
+                                            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.cumulate.total.reward", Text.literal(String.valueOf(cumulateCount)).formatted(Formatting.GOLD)), false);
+                                            context.getSource().sendFeedback(() -> cumulateRewardText, false);
+                                        }
+                                        // Give Monthly Cumulate Reward
+                                        int monthlyCumulateCount = ClockInServer.DATABASE_MANAGER.getPlayerDailyClockInCount(context.getSource().getPlayerOrThrow().getUuidAsString(), LocalDate.now().getMonthValue());
+                                        RewardInterface monthlyCumulateReward = ClockInServer.DATABASE_MANAGER.getRewardOrNew("cumulate_reward_monthly_" + monthlyCumulateCount);
+                                        if(!monthlyCumulateReward.isNew()) {
+                                            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(monthlyCumulateReward.getItemListSerialized()), context.getSource().getPlayerOrThrow());
+                                            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+                                            user.addBalance(monthlyCumulateReward.getMoney());
+                                            user.addRaffleTicket(monthlyCumulateReward.getRaffleTickets());
+                                            user.addMakeupCard(monthlyCumulateReward.getMakeupCards());
+                                            final Text monthlyCumulateRewardText = FabricUtils.generateReadableReward(monthlyCumulateReward);
+                                            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.cumulate.total.reward", Text.literal(String.valueOf(monthlyCumulateCount)).formatted(Formatting.GOLD)), false);
+                                            context.getSource().sendFeedback(() -> monthlyCumulateRewardText, false);
+                                        }
                                     }
                                 } else {
                                     DailyClockInRecordInterface finalDailyClockInRecord1 = dailyClockInRecord;
@@ -68,9 +96,29 @@ public class CommandManager {
                             }
                             return 1;
                         }))
+                .then(literal("calendar")
+                        .executes(context -> {
+                            context.getSource().sendFeedback(() -> Text.literal("还在加紧制作中，敬请期待！").formatted(Formatting.RED), false);
+                            return 1;
+                        })
+                )
                 .then(literal("admin")
                         .requires(source -> source.hasPermissionLevel(4))
                         .then(literal("reward")
+                                .then(literal("get")
+                                        .then(argument("key", StringArgumentType.string()).executes(context -> {
+                                            final String key = StringArgumentType.getString(context, "key");
+                                            RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+                                            if(reward.isNew()){
+                                                context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key).formatted(Formatting.RED), false);
+                                            }else{
+                                                Text rewardText = FabricUtils.generateReadableReward(reward);
+                                                context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.success", key).formatted(Formatting.GREEN), false);
+                                                context.getSource().sendFeedback(() -> rewardText, false);
+                                            }
+                                            return 1;
+                                        }))
+                                )
                                 .then(literal("set")
                                         .then(argument("key", StringArgumentType.string())
                                                 .then(literal("itemList")
@@ -119,9 +167,9 @@ public class CommandManager {
                                                         }))
                                                 )
                                                 .then(literal("money")
-                                                        .then(argument("amount", IntegerArgumentType.integer()).executes(context -> {
+                                                        .then(argument("amount", DoubleArgumentType.doubleArg()).executes(context -> {
                                                             final String key = StringArgumentType.getString(context, "key");
-                                                            final int amount = IntegerArgumentType.getInteger(context, "amount");
+                                                            final double amount = DoubleArgumentType.getDouble(context, "amount");
                                                             RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
                                                             reward.setMoney(amount);
                                                             ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
@@ -151,6 +199,155 @@ public class CommandManager {
                                                             return 1;
                                                         }))
                                                 )
+                                        )
+                                )
+                                .then(literal("give")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("key", StringArgumentType.string()).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final String key = StringArgumentType.getString(context, "key");
+                                                    RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+                                                    if(reward.isNew()){
+                                                        context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key, player.getName()).formatted(Formatting.RED), false);
+                                                    }else{
+                                                        FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
+                                                        UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                        user.addBalance(reward.getMoney());
+                                                        user.addRaffleTicket(reward.getRaffleTickets());
+                                                        user.addMakeupCard(reward.getMakeupCards());
+                                                        context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.give.success", player.getName(), key).formatted(Formatting.GREEN), false);
+                                                    }
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                        )
+                        .then(literal("money")
+                                .then(literal("get")
+                                        .then(argument("player", EntityArgumentType.player()).executes(context -> {
+                                            final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                            final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.money", player.getName(), user.getBalance(), CURRENCY_NAME).formatted(Formatting.GREEN), false);
+                                            return 1;
+                                        }))
+                                )
+                                .then(literal("set")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", DoubleArgumentType.doubleArg()).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.setBalance(DoubleArgumentType.getDouble(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.money.success", player.getName(), DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                                .then(literal("give")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", DoubleArgumentType.doubleArg(0.0, Double.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.addBalance(DoubleArgumentType.getDouble(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.money.success", DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME, player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                                .then(literal("take")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", DoubleArgumentType.doubleArg(0.0, Double.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.subtractBalance(DoubleArgumentType.getDouble(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.money.success", DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME, player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                        )
+                        .then(literal("raffleTicket")
+                                .then(literal("get")
+                                        .then(argument("player", EntityArgumentType.player()).executes(context -> {
+                                            final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                            final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.raffle_ticket", player.getName(), user.getRaffleTicket()).formatted(Formatting.GREEN), false);
+                                            return 1;
+                                        }))
+                                )
+                                .then(literal("set")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.setRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.raffle_ticket.success", player.getName(), IntegerArgumentType.getInteger(context, "amount")).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                                .then(literal("give")
+                                         .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.addRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.raffle_ticket.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                         )
+                                )
+                                .then(literal("take")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.removeRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.raffle_ticket.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                        )
+                        .then(literal("makeupCard")
+                                .then(literal("get")
+                                        .then(argument("player", EntityArgumentType.player()).executes(context -> {
+                                            final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                            final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.makeup_card", player.getName(), user.getMakeupCard()).formatted(Formatting.GREEN), false);
+                                            return 1;
+                                        }))
+                                )
+                                .then(literal("set")
+                                         .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.setMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.makeup_card.success", player.getName(), IntegerArgumentType.getInteger(context, "amount")).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                         )
+                                )
+                                .then(literal("give")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.addMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.makeup_card.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
+                                        )
+                                )
+                                .then(literal("take")
+                                        .then(argument("player", EntityArgumentType.player())
+                                                .then(argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE)).executes(context -> {
+                                                    final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                    final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+                                                    user.removeMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
+                                                    context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.makeup_card.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
+                                                    return 1;
+                                                }))
                                         )
                                 )
                         )
