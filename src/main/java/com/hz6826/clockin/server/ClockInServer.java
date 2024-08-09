@@ -45,9 +45,6 @@ public class ClockInServer implements DedicatedServerModInitializer {
 			}
 			databaseManager.createTables();
 			DATABASE_MANAGER = databaseManager;
-//			UserWithAccountAbstract user = DATABASE_MANAGER.getOrCreateUser("890af6d3-7114-4648-867e-66c2ccdf9069", "OakPlatinum");
-//			LOGGER.warn(user.getPlayerName());
-//			user.setRaffleTicket(55);
 			ArrayList<ItemStack> itemStackList = new ArrayList<>();
 			itemStackList.add(new ItemStack(Items.DIAMOND));
 			itemStackList.add(new ItemStack(Items.GOLD_INGOT, 40));

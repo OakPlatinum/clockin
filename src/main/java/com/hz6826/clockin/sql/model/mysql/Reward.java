@@ -105,7 +105,7 @@ public class Reward implements RewardInterface {
 
     @Override
     public boolean isNew() {
-        return getItemListSerialized().isBlank() || getMoney() == 0 && getRaffleTickets() == 0 && getMakeupCards() == 0;
+        return getItemListSerialized().isBlank() && getMoney() == 0 && getRaffleTickets() == 0 && getMakeupCards() == 0;
     }
 
     @Contract(pure = true)

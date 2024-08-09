@@ -1,5 +1,6 @@
 package com.hz6826.clockin.mixin;
 
+import com.hz6826.clockin.api.FabricUtils;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.minecraft.network.ClientConnection;
@@ -7,6 +8,7 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,11 +37,12 @@ public abstract class MixinPlayerManager{
             Text balanceText = Text.literal(String.valueOf(clockInUser.getBalance())).formatted(Formatting.GOLD);
             Text rankText = Text.literal(String.valueOf(clockInUser.getBalanceRank())).formatted(Formatting.GOLD);
             player.sendMessage(Text.translatable("command.clockin.init.balance", balanceText, rankText));
+            Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DATABASE_MANAGER.getRewardOrNew("daily_reward"));
             if(ClockInServer.DATABASE_MANAGER.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
                 Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
                         .withColor(Formatting.AQUA) // 设置文本颜色
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin dailyclockin"))
-                );
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardText)));
                 player.sendMessage(Text.translatable("command.clockin.init.clockin.require", clockInButton));
             }
             player.sendMessage(Text.translatable("command.clockin.init.foot").formatted(Formatting.AQUA));

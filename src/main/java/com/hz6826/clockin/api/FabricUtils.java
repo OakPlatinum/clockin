@@ -31,7 +31,7 @@ public class FabricUtils {
         StringBuilder stringBuilder = new StringBuilder();
         for (ItemStack stack : stackList) {
             stringBuilder
-                    .append(stack.getItem().toString())
+                    .append(Registries.ITEM.getId(stack.getItem()))
                     .append("|")
                     .append(stack.getCount())
                     .append("|")
@@ -45,10 +45,8 @@ public class FabricUtils {
         String[] strings = serializedStackList.split(";");
         for (String string : strings) {
             String[] s = string.split("\\|");
-            // 1. 创建 RegistryKey<Item>
             RegistryKey<Item> itemKey = RegistryKey.of(Registries.ITEM.getKey(), new Identifier(s[0]));
 
-            // 2. 获取物品条目
             Optional<RegistryEntry.Reference<Item>> itemEntryOptional = Registries.ITEM.getEntry(itemKey);
             RegistryEntry<Item> itemEntry = itemEntryOptional.orElseThrow(() -> new IllegalArgumentException("Invalid item ID: " + s[0]));
             try {
@@ -86,10 +84,7 @@ public class FabricUtils {
             ArrayList<ItemStack> itemStackList = deserializeItemStackList(reward.getItemListSerialized());
             MutableText itemText = Text.empty();
             for (ItemStack itemStack: itemStackList) {
-                MutableText itemStackName = (MutableText) itemStack.getName();
-                itemStackName.setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack))));
-                itemStackName.formatted(itemStack.getRarity().formatting);
-                itemText.append(itemStackName).append(Text.literal("x"+itemStack.getCount()+"  ").formatted(Formatting.GRAY));
+                itemText.append(generateItemStackComponent(itemStack));
             }
             text.append(Text.translatable("command.clockin.reward.title.item", itemText)).append("\n");
         }
@@ -97,5 +92,13 @@ public class FabricUtils {
         if(reward.getRaffleTickets() != 0) text.append(Text.translatable("command.clockin.reward.title.raffle_ticket", reward.getRaffleTickets())).append("\n");
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
+    }
+    public static MutableText generateItemStackComponent(ItemStack itemStack){
+        MutableText itemText = Text.empty();
+        MutableText itemStackName = (MutableText) itemStack.getName();
+        itemStackName.setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack))));
+        itemStackName.formatted(itemStack.getRarity().formatting);
+        itemText.append(itemStackName).append(Text.literal("x"+itemStack.getCount()+"  ").formatted(Formatting.GRAY));
+        return itemText;
     }
 }

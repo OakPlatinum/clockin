@@ -1,4 +1,4 @@
-package com.hz6826.clockin.api.economy;
+package com.hz6826.clockin.sql.model.interfaces;
 
 public interface EconomyAccount {
     double getBalance();

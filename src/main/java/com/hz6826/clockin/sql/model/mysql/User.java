@@ -2,7 +2,7 @@ package com.hz6826.clockin.sql.model.mysql;
 
 import com.hz6826.clockin.sql.model.interfaces.UserInterface;
 import com.hz6826.clockin.sql.MySQLDatabaseManager;
-import com.hz6826.clockin.api.economy.EconomyAccount;
+import com.hz6826.clockin.sql.model.interfaces.EconomyAccount;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

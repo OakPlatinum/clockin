@@ -1,4 +1,8 @@
 {
+  "command.clockin.error.already_running": "你现在正在运行一个指令，请稍后再试！",
+  "command.clockin.error.must_be_player": "只允许一个玩家，但提供的选择器允许多个玩家",
+  "command.clockin.error.work_in_progress": "该功能还在加紧开发中，敬请期待！",
+  "command.clockin.error": "执行失败！请稍后重试或联系管理员反馈该问题！",
   "command.clockin.formatter.time": "hh:mm:ss",
   "command.clockin.clockin.loading": "正在加载Clock In界面！",
   "command.clockin.init.headline": "=======Clock In=======",
@@ -11,6 +15,9 @@
   "command.clockin.dailyclockin.failed": "日签失败，请稍后重试！",
   "command.clockin.dailyclockin.success": "签到成功！您是今天第 %d 个签到的玩家！",
   "command.clockin.dailyclockin.success.reward": "日签奖励：%s",
+  "command.clockin.dailyclockin.success.cumulate.total.reward": "您已累计签到 %d 天，恭喜获得奖励：",
+  "command.clockin.dailyclockin.success.cumulate.monthly.reward": "您本月已累计签到 %d 天，恭喜获得奖励：",
+  "command.clockin.dailyclockin.success.broadcast": "玩家 %s 签到成功，他是今天第 %d 个签到的玩家！",
   "command.clockin.dailyclockin.already": "您今天已经签到过了！您今天是第 %d 个签到的，签到时间：%s。",
   "command.clockin.reward.null": "空",
   "command.clockin.reward.get.null": "没有找到键值为 %s 的奖励！",
