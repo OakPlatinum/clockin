@@ -44,6 +44,7 @@ public class FabricUtils {
     }
     public static ArrayList<ItemStack> deserializeItemStackList(String serializedStackList){
         ArrayList<ItemStack> stackList = new ArrayList<>();
+        if(serializedStackList.isBlank()) return stackList;
         String[] strings = serializedStackList.split(";");
         for (String string : strings) {
             String[] s = string.split("\\|");
