@@ -2,7 +2,9 @@ package com.hz6826.clockin.api;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
+import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -75,7 +77,11 @@ public class FabricUtils {
     }
     public static void giveItem(@NotNull ItemStack stack, PlayerEntity player) {
         if (!stack.isEmpty()) {
-            player.giveItemStack(stack);
+            if (player.getInventory().getEmptySlot() >= 1) {
+                player.giveItemStack(stack);
+            } else {
+                player.dropItem(stack, false);
+            }
         }
     }
     public static Text generateReadableReward(RewardInterface reward){
@@ -93,12 +99,40 @@ public class FabricUtils {
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
     }
-    public static MutableText generateItemStackComponent(ItemStack itemStack){
+    public static MutableText generateItemStackComponent(ItemStack itemStack) {
         MutableText itemText = Text.empty();
         MutableText itemStackName = (MutableText) itemStack.getName();
         itemStackName.setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack))));
         itemStackName.formatted(itemStack.getRarity().formatting);
-        itemText.append(itemStackName).append(Text.literal("x"+itemStack.getCount()+"  ").formatted(Formatting.GRAY));
+        itemText.append(itemStackName).append(Text.literal("x" + itemStack.getCount() + "  ").formatted(Formatting.GRAY));
         return itemText;
+    }
+
+    public static Text giveReward(ServerPlayerEntity player, String rewardString){
+        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(rewardString);
+        Text rewardText = null;
+        if(!reward.isNew()) {
+            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
+            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+            user.addBalance(reward.getMoney());
+            user.addRaffleTicket(reward.getRaffleTickets());
+            user.addMakeupCard(reward.getMakeupCards());
+            rewardText = FabricUtils.generateReadableReward(reward);
+        }
+        return rewardText;
+    }
+
+    public static Text giveReward(PlayerEntity player, String rewardString){
+        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(rewardString);
+        Text rewardText = null;
+        if(!reward.isNew()) {
+            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
+            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+            user.addBalance(reward.getMoney());
+            user.addRaffleTicket(reward.getRaffleTickets());
+            user.addMakeupCard(reward.getMakeupCards());
+            rewardText = FabricUtils.generateReadableReward(reward);
+        }
+        return rewardText;
     }
 }

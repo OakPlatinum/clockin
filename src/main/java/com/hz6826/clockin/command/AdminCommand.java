@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 public class AdminCommand {
     public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
-    public static void getReward(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static void getReward(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
         if (reward.isNew()) {
@@ -76,7 +76,7 @@ public class AdminCommand {
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
 
-    public static void setRewardMoney(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static void setRewardMoney(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final double amount = DoubleArgumentType.getDouble(context, "amount");
         RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
@@ -85,7 +85,7 @@ public class AdminCommand {
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.money.success", key, amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
 
-    public static void setRewardRaffleTicket(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static void setRewardRaffleTicket(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final int amount = IntegerArgumentType.getInteger(context, "amount");
         RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
@@ -94,7 +94,7 @@ public class AdminCommand {
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.raffle_ticket.success", key, amount).formatted(Formatting.GREEN), false);
     }
 
-    public static void setRewardMakeupCard(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static void setRewardMakeupCard(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final int amount = IntegerArgumentType.getInteger(context, "amount");
         RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
@@ -106,15 +106,10 @@ public class AdminCommand {
     public static void giveRewardToPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         final String key = StringArgumentType.getString(context, "key");
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
-        if(reward.isNew()){
+        Text rewardText = FabricUtils.giveReward(player, key);
+        if(rewardText == null){
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key, player.getName()).formatted(Formatting.RED), false);
         }else{
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
-            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
-            user.addBalance(reward.getMoney());
-            user.addRaffleTicket(reward.getRaffleTickets());
-            user.addMakeupCard(reward.getMakeupCards());
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.give.success", player.getName(), key).formatted(Formatting.GREEN), false);
         }
     }
