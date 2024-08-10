@@ -324,20 +324,30 @@ public class MySQLDatabaseManager implements DatabaseManager{
 
     @Override
     public RewardInterface createOrUpdateReward(RewardInterface reward) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (`key`, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =?")) {
-            preparedStatement.setString(1, reward.getKey());
-            preparedStatement.setString(2, reward.getTranslatableKey());
-            preparedStatement.setString(3, reward.getItemListSerialized());
-            preparedStatement.setDouble(4, reward.getMoney());
-            preparedStatement.setInt(5, reward.getRaffleTickets());
-            preparedStatement.setInt(6, reward.getMakeupCards());
-            preparedStatement.setString(7, reward.getItemListSerialized());
-            preparedStatement.setDouble(8, reward.getMoney());
-            preparedStatement.setInt(9, reward.getRaffleTickets());
-            preparedStatement.setInt(10, reward.getMakeupCards());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to create or update reward: " + e.getMessage());
+        if (getRewardOrNew(reward.getKey()).isNew()){
+            try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (`key`, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?)")) {
+                preparedStatement.setString(1, reward.getKey());
+                preparedStatement.setString(2, reward.getTranslatableKey());
+                preparedStatement.setString(3, reward.getItemListSerialized());
+                preparedStatement.setDouble(4, reward.getMoney());
+                preparedStatement.setInt(5, reward.getRaffleTickets());
+                preparedStatement.setInt(6, reward.getMakeupCards());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                ClockIn.LOGGER.error("Failed to create reward: " + e.getMessage());
+            }
+        } else {
+            try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE rewards SET translatable_key =?, item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =? WHERE `key` = ?")) {
+                preparedStatement.setString(1, reward.getTranslatableKey());
+                preparedStatement.setString(2, reward.getItemListSerialized());
+                preparedStatement.setDouble(3, reward.getMoney());
+                preparedStatement.setInt(4, reward.getRaffleTickets());
+                preparedStatement.setInt(5, reward.getMakeupCards());
+                preparedStatement.setString(6, reward.getKey());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                ClockIn.LOGGER.error("Failed to update reward: " + e.getMessage());
+            }
         }
         return getRewardOrNew(reward.getKey());
     }
