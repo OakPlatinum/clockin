@@ -8,10 +8,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 public class UtilsCommand {
     public static void showMainHandItem(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ENTITY, new HoverEvent.EntityContent(EntityType.PLAYER, context.getSource().getPlayerOrThrow().getUuid(), context.getSource().getPlayerOrThrow().getName()));
-        context.getSource().getServer().sendMessage(Text.translatable("", context.getSource().getPlayerOrThrow().getName().getWithStyle(Style.EMPTY.withBold(true).withHoverEvent(hoverEvent)), FabricUtils.generateItemStackComponent(context.getSource().getPlayerOrThrow().getMainHandStack())));
+        context.getSource().getServer().sendMessage(Text.translatable("", context.getSource().getPlayerOrThrow().getName().copy().formatted(Formatting.AQUA), FabricUtils.generateItemStackComponent(context.getSource().getPlayerOrThrow().getMainHandStack())));
     }
 }

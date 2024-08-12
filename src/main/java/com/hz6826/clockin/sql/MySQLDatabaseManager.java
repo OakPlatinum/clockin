@@ -25,7 +25,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         String host = BasicConfig.getConfig().getMysqlHost();
         int port = BasicConfig.getConfig().getMysqlPort();
         String database = BasicConfig.getConfig().getMysqlDatabase();
-        String useSSL = BasicConfig.getConfig().getMysqlUseSSL();
+        boolean useSSL = BasicConfig.getConfig().getMysqlUseSSL();
         url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
         username = BasicConfig.getConfig().getMysqlUsername();
         password = BasicConfig.getConfig().getMysqlPassword();

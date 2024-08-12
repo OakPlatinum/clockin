@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "clockin:coins",
+  "ingredients": [
+    {
+      "item": "clockin:coin_1"
+    },
+    {
+      "item": "clockin:coin_1"
+    },
+    {
+      "item": "clockin:coin_1"
+    },
+    {
+      "item": "clockin:coin_1"
+    },
+    {
+      "item": "clockin:coin_1"
+    }
+  ],
+  "result": {
+    "item": "clockin:coin_5",
+    "count": 1
+  }
+}
+

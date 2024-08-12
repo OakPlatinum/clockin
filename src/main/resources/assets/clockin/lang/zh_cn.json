@@ -1,4 +1,7 @@
 {
+  "item.clockin.coin": "%d%s硬币",
+
+  "command.clockin.executing": "正在执行指令！",
   "command.clockin.error.already_running": "你现在正在运行一个指令，请稍后再试！",
   "command.clockin.error.must_be_player": "只允许一个玩家，但提供的选择器允许多个玩家",
   "command.clockin.error.work_in_progress": "该功能还在加紧开发中，敬请期待！",
@@ -45,5 +48,13 @@
   "command.clockin.player.set.makeup_card.success": "成功设置玩家 %s 的补签卡为 %d 张",
   "command.clockin.player.give.makeup_card.success": "成功添加 %d 张补签卡到玩家 %s 的账户",
   "command.clockin.player.take.makeup_card.success": "成功减少 %d 张补签卡从玩家 %s 的账户",
-  "command.clockin.utils.show_item": "玩家 %s 展示了物品：%s"
+  "command.clockin.utils.show_item": "玩家 %s 展示了物品：%s",
+
+  "command.clockin.economy.balance": "您的账户余额为 %d %s，排名为 %d",
+  "command.clockin.economy.deposit": "成功将 %d %s 存入您的账户！",
+  "command.clockin.economy.withdraw": "成功将 %d %s 从您的账户提取！",
+  "command.clockin.economy.not_enough_money": "您的账户余额不足！",
+  "command.clockin.economy.transfer.success": "成功将 %d %s 转账给玩家 %s！",
+  "command.clockin.economy.transfer.failed": "转账失败！您的账户余额不足！",
+  "command.clockin.economy.transfer.self": "不能转账给自己！"
 }

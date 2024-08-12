@@ -33,7 +33,6 @@ public class ClockInServer implements DedicatedServerModInitializer {
 
 		// Initialize config, command manager, and database manager
 		BasicConfig config = BasicConfig.getConfig();
-		config.load();
 		CommandManager commandManager = new CommandManager();
 		if (config.getDatabaseType().equals("mysql")) {
 			DatabaseManager databaseManager = new MySQLDatabaseManager();

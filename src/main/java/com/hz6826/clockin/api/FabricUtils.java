@@ -22,9 +22,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class FabricUtils {
     public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
@@ -135,5 +133,55 @@ public class FabricUtils {
             rewardText = FabricUtils.generateReadableReward(reward);
         }
         return rewardText;
+    }
+
+    public static @NotNull ArrayList<ItemStack> parseAmountToPhysicalMoney(int amount){
+        ArrayList<ItemStack> itemStackList = new ArrayList<>();
+        // Sort the currency items by key (denomination) in descending order
+        List<Map.Entry<Integer, String>> sortedCurrencyItems = BasicConfig.getConfig().getPhysicalCurrencyItemIdsSorted();
+
+        // Iterate over the sorted currency items
+        for (Map.Entry<Integer, String> entry : sortedCurrencyItems) {
+            int denomination = entry.getKey();
+            String itemId = entry.getValue();
+            int itemCount = 0;
+
+            // Determine how many of this denomination can be used
+            while (amount >= denomination) {
+                amount -= denomination; // Subtract the denomination from the amount
+                itemCount++; // Increment the count of items
+            }
+            itemStackList.add(new ItemStack(Registries.ITEM.get(new Identifier(itemId)), itemCount));
+        }
+
+        return itemStackList; // Return the list of ItemStacks
+    }
+    public static void givePhysicalMoney(ServerPlayerEntity player, int amount){
+        ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
+        FabricUtils.giveItemList(itemStackList, player);
+    }
+    public static void givePhysicalMoney(PlayerEntity player, int amount){
+        ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
+        FabricUtils.giveItemList(itemStackList, player);
+    }
+
+    public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
+        int amount = 0;
+
+        Map<String, Integer> currencyMap = BasicConfig.getConfig().getPhysicalCurrencyItemIds();
+
+        for (ItemStack itemStack : itemStackList) {
+            int itemCount = itemStack.getCount();
+            String itemName = Registries.ITEM.getId(itemStack.getItem()).toString();
+
+            Integer denomination = currencyMap.get(itemName);
+            if (denomination == null) {
+                ClockIn.LOGGER.error("Invalid physical currency item: " + itemName + " with count: " + itemCount);
+                continue;
+            }
+
+            amount += itemCount * denomination;
+        }
+        return amount;
     }
 }
