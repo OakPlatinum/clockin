@@ -51,7 +51,8 @@ public class FabricUtils {
             Optional<RegistryEntry.Reference<Item>> itemEntryOptional = Registries.ITEM.getEntry(itemKey);
             RegistryEntry<Item> itemEntry = itemEntryOptional.orElseThrow(() -> new IllegalArgumentException("Invalid item ID: " + s[0]));
             try {
-                ItemStack itemStack = new ItemStack(itemEntry, Integer.parseInt(s[1]), Optional.ofNullable(StringNbtReader.parse(s[2])));
+                ItemStack itemStack = new ItemStack(itemEntry, Integer.parseInt(s[1]));
+                itemStack.setNbt(StringNbtReader.parse(s[2]));
                 stackList.add(itemStack);
             } catch (CommandSyntaxException e) {
                 ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0]);

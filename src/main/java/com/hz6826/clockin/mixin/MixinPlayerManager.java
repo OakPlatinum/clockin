@@ -5,7 +5,6 @@ import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
@@ -28,7 +27,7 @@ public abstract class MixinPlayerManager{
 
 
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
-    public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+    public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         if(ClockInServer.DATABASE_MANAGER != null){
             UserWithAccountAbstract clockInUser = ClockInServer.DATABASE_MANAGER.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName()));
             player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
