@@ -1,11 +1,6 @@
 package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.api.FabricUtils;
-import com.hz6826.clockin.config.BasicConfig;
-import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
-import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -13,12 +8,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +18,8 @@ import java.util.concurrent.CompletableFuture;
 import static net.minecraft.server.command.CommandManager.*;
 
 public class CommandManager {
-    public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
+    private static final String rootCommand = "clockin";
+    private static final String rootCommandAlias = "cin";
     private static final ArrayList<ServerPlayerEntity> waitingPlayers = new ArrayList<>();
     public CommandManager() {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
@@ -37,11 +30,11 @@ public class CommandManager {
                     })
                     .then(literal("dailyclockin")
                             .executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
-                    .then(literal("calendar")
-                            .executes(context -> {
-                                context.getSource().sendFeedback(() -> Text.translatable("command.clockin.error.work_in_progress").formatted(Formatting.RED), false);
-                                return 1;
-                            })
+                    .then(literal("info")
+                            .executes(context -> executeAsync(context, InfoCommand::showInfo))
+                    )
+                    .then(literal("leaderboard")
+                            .executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard))
                     )
                     .then(literal("admin")
                             .requires(source -> source.hasPermissionLevel(4))
@@ -134,7 +127,7 @@ public class CommandManager {
                                     )
                             )
                     )
-                    .then(literal("item")
+                    .then(literal("showitem")
                             .executes(context -> executeAsync(context, UtilsCommand::showMainHandItem))
                     )
                     .then(literal("economy")
@@ -143,13 +136,35 @@ public class CommandManager {
                             .then(literal("withdraw").executes(context -> executeAsync(context, EconomyCommand::withdraw))
                                     .then(argument("amount", IntegerArgumentType.integer()).executes(context -> executeAsync(context, EconomyCommand::withdrawWithAmount))))
                             .then(literal("transfer")
-                                    .then(argument("player", EntityArgumentType.player())
+                                    .then(argument("to", EntityArgumentType.player())
                                             .then(argument("amount", DoubleArgumentType.doubleArg(0.0, Double.MAX_VALUE)).executes(context -> executeAsync(context, EconomyCommand::transfer)))
                                     )
                             )
                     )
             );
-            dispatcher.register(literal("ci").redirect(clockInRootNode));
+            dispatcher.register(literal(rootCommand)
+                    .then(literal("dci").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
+                    .then(literal("i").executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard))
+                    .then(literal("lb").executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard))))
+                    .then(literal("a").redirect(clockInRootNode.getChild("admin")))
+                    .then(literal("si").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
+                    .then(literal("e").redirect(clockInRootNode.getChild("economy")))
+            );
+            dispatcher.register(literal(rootCommandAlias)
+                    .then(literal("dailyclockin").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
+                    .then(literal("info").executes(context -> executeAsync(context, InfoCommand::showInfo)))
+                    .then(literal("leaderboard").executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard)))
+                    .then(literal("admin").redirect(clockInRootNode.getChild("admin")))
+                    .then(literal("showitem").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
+                    .then(literal("economy").redirect(clockInRootNode.getChild("economy")))
+
+                    .then(literal("dci").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
+                    .then(literal("i").executes(context -> executeAsync(context, InfoCommand::showInfo)))
+                    .then(literal("lb").executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard)))
+                    .then(literal("a").redirect(clockInRootNode.getChild("admin")))
+                    .then(literal("si").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
+                    .then(literal("e").redirect(clockInRootNode.getChild("economy")))
+            );
         }));
 
 

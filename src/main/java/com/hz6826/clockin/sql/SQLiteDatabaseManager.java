@@ -1,34 +1,28 @@
 package com.hz6826.clockin.sql;
 
-import java.sql.*;
-import java.sql.Date;
-import java.util.*;
-
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
-import com.hz6826.clockin.sql.model.mysql.DailyClockInRecord;
-import com.hz6826.clockin.sql.model.mysql.Reward;
-import com.hz6826.clockin.sql.model.mysql.User;
+import com.hz6826.clockin.sql.model.sqlite.DailyClockInRecord;
+import com.hz6826.clockin.sql.model.sqlite.Reward;
+import com.hz6826.clockin.sql.model.sqlite.User;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-@Environment(EnvType.SERVER)
-public class MySQLDatabaseManager implements DatabaseManager{
-    private final String url;
-    private final String username;
-    private final String password;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-    public MySQLDatabaseManager() {
-        String host = BasicConfig.getConfig().getMysqlHost();
-        int port = BasicConfig.getConfig().getMysqlPort();
-        String database = BasicConfig.getConfig().getMysqlDatabase();
-        boolean useSSL = BasicConfig.getConfig().getMysqlUseSSL();
-        url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
-        username = BasicConfig.getConfig().getMysqlUsername();
-        password = BasicConfig.getConfig().getMysqlPassword();
+@Environment(EnvType.SERVER)
+public class SQLiteDatabaseManager implements DatabaseManager{
+    private final String url;
+
+    public SQLiteDatabaseManager() {
+        String filePathString = BasicConfig.getConfig().getSqliteFilePath();
+        url = "jdbc:sqlite:" + filePathString.replace("\\", "/");
         try {
             Connection conn = getConn();
             conn.close();
@@ -247,7 +241,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
 
     @Override
     public int getPlayerDailyClockInCount(String uuid, int month) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM daily_clock_in_records WHERE uuid = ? AND MONTH(date) = ?")) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM daily_clock_in_records WHERE uuid = ? AND strftime('%m', date) = ?;")) {
             preparedStatement.setString(1, uuid);
             preparedStatement.setInt(2, month);
             ResultSet rs = preparedStatement.executeQuery();
@@ -280,17 +274,16 @@ public class MySQLDatabaseManager implements DatabaseManager{
     public Connection getConn() throws SQLException {
         try {
             // conn.setAutoCommit(true);
-            return DriverManager.getConnection(url, username, password);
+            return DriverManager.getConnection(url);
         } catch (SQLException e) {
             ClockIn.LOGGER.error("Failed to get connection: " + e.getMessage());
             throw new SQLException("Failed to get connection.");
         }
     }
 
-    // Reward methods
     @Override
     public RewardInterface getRewardOrNew(String key) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM rewards WHERE `key` = ?")) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM rewards WHERE [key] = ?")) {
             preparedStatement.setString(1, key);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
@@ -307,7 +300,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
     @Override
     public RewardInterface createOrUpdateReward(RewardInterface reward) {
         if (getRewardOrNew(reward.getKey()).isNew()){
-            try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards (`key`, translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?)")) {
+            try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO rewards ([key], translatable_key, item_list_serialized, money, raffle_tickets, makeup_cards) VALUES (?,?,?,?,?,?)")) {
                 preparedStatement.setString(1, reward.getKey());
                 preparedStatement.setString(2, reward.getTranslatableKey());
                 preparedStatement.setString(3, reward.getItemListSerialized());
@@ -319,7 +312,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 ClockIn.LOGGER.error("Failed to create reward: " + e.getMessage());
             }
         } else {
-            try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE rewards SET translatable_key =?, item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =? WHERE `key` = ?")) {
+            try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE rewards SET translatable_key =?, item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =? WHERE [key] = ?")) {
                 preparedStatement.setString(1, reward.getTranslatableKey());
                 preparedStatement.setString(2, reward.getItemListSerialized());
                 preparedStatement.setDouble(3, reward.getMoney());
@@ -334,7 +327,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return getRewardOrNew(reward.getKey());
     }
 
-    private static final DatabaseManager instance = new MySQLDatabaseManager();
+    private static final DatabaseManager instance = new SQLiteDatabaseManager();
     public static DatabaseManager getInstance() {
         return instance;
     }

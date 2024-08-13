@@ -48,7 +48,7 @@
   "command.clockin.player.set.makeup_card.success": "成功设置玩家 %s 的补签卡为 %d 张",
   "command.clockin.player.give.makeup_card.success": "成功添加 %d 张补签卡到玩家 %s 的账户",
   "command.clockin.player.take.makeup_card.success": "成功减少 %d 张补签卡从玩家 %s 的账户",
-  "command.clockin.utils.show_item": "玩家 %s 展示了物品：%s",
+  "command.clockin.utils.show_item": "[Clock In] 玩家 %s 展示了物品：%s",
 
   "command.clockin.economy.balance": "您的账户余额为 %d %s，排名为 %d",
   "command.clockin.economy.deposit": "成功将 %d %s 存入您的账户！",

@@ -1,20 +1,15 @@
 package com.hz6826.clockin.server;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.api.FabricUtils;
 import com.hz6826.clockin.command.CommandManager;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.sql.DatabaseManager;
 import com.hz6826.clockin.sql.MySQLDatabaseManager;
-import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql.SQLiteDatabaseManager;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 public class ClockInServer implements DedicatedServerModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -33,24 +28,19 @@ public class ClockInServer implements DedicatedServerModInitializer {
 
 		// Initialize config, command manager, and database manager
 		BasicConfig config = BasicConfig.getConfig();
-		CommandManager commandManager = new CommandManager();
+		new CommandManager();
 		if (config.getDatabaseType().equals("mysql")) {
-			DatabaseManager databaseManager = new MySQLDatabaseManager();
-			try {
-				databaseManager.getConn();
-			} catch (SQLException e) {
-				LOGGER.error("Couldn't connect to SQL server!" + e.getMessage());
-				return;
-			}
-			databaseManager.createTables();
-			DATABASE_MANAGER = databaseManager;
-			ArrayList<ItemStack> itemStackList = new ArrayList<>();
-			itemStackList.add(new ItemStack(Items.DIAMOND));
-			itemStackList.add(new ItemStack(Items.GOLD_INGOT, 40));
-			String serializedList = FabricUtils.serializeItemStackList(itemStackList);
-			LOGGER.info(serializedList);
-			ArrayList<ItemStack> deserializedList = FabricUtils.deserializeItemStackList(serializedList);
+			DATABASE_MANAGER = new MySQLDatabaseManager();
+		} else if (config.getDatabaseType().equals("sqlite")) {
+			DATABASE_MANAGER = new SQLiteDatabaseManager();
 		}
+		try {
+			DATABASE_MANAGER.getConn();
+		} catch (SQLException e) {
+			LOGGER.error("Couldn't connect to SQL server!" + e.getMessage());
+			return;
+		}
+		DATABASE_MANAGER.createTables();
 
 	}
 }

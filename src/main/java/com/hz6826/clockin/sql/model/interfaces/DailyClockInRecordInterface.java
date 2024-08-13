@@ -9,11 +9,11 @@ import java.sql.Time;
 @Environment(EnvType.SERVER)
 public interface DailyClockInRecordInterface{
 
-    Date getDate();
+    Date date();
 
-    String getUuid();
+    String uuid();
 
-    Time getTime();
+    Time time();
 
-    int getRank();
+    int rank();
 }

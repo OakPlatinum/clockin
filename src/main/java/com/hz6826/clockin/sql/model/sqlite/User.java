@@ -1,8 +1,8 @@
-package com.hz6826.clockin.sql.model.mysql;
+package com.hz6826.clockin.sql.model.sqlite;
 
-import com.hz6826.clockin.sql.model.interfaces.UserInterface;
-import com.hz6826.clockin.sql.MySQLDatabaseManager;
+import com.hz6826.clockin.sql.SQLiteDatabaseManager;
 import com.hz6826.clockin.sql.model.interfaces.EconomyAccount;
+import com.hz6826.clockin.sql.model.interfaces.UserInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -32,7 +32,7 @@ public class User extends UserWithAccountAbstract {
     }
 
     public void save() {
-        MySQLDatabaseManager.getInstance().updateUser(this);
+        SQLiteDatabaseManager.getInstance().updateUser(this);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class User extends UserWithAccountAbstract {
 
     @Override
     public int getBalanceRank() {
-        List<UserWithAccountAbstract> users = MySQLDatabaseManager.getInstance().getUsersSortedByBalance();
+        List<UserWithAccountAbstract> users = SQLiteDatabaseManager.getInstance().getUsersSortedByBalance();
         int cnt = 1;
         for (UserInterface user: users) {
             if (this.equals(user)) break;
@@ -105,7 +105,7 @@ public class User extends UserWithAccountAbstract {
 
     @Override
     public int getRaffleTicketRank() {
-        List<UserWithAccountAbstract> users = MySQLDatabaseManager.getInstance().getUsersSortedByRaffleTicket();
+        List<UserWithAccountAbstract> users = SQLiteDatabaseManager.getInstance().getUsersSortedByRaffleTicket();
         int cnt = 1;
         for (UserInterface user: users) {
             if (this.equals(user)) break;
@@ -186,14 +186,13 @@ public class User extends UserWithAccountAbstract {
     public static @NotNull String createTableSQL() {
         return """
                 CREATE TABLE IF NOT EXISTS users (
-                    id INT NOT NULL AUTO_INCREMENT,
-                    uuid VARCHAR(36) NOT NULL,
-                    player_name VARCHAR(255) NOT NULL,
-                    balance DOUBLE NOT NULL DEFAULT 0,
-                    raffle_ticket INT(11) NOT NULL DEFAULT 0,
-                    makeup_card INT(11) NOT NULL DEFAULT 0,
-                    PRIMARY KEY (id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    uuid TEXT NOT NULL,
+                    player_name TEXT NOT NULL,
+                    balance REAL NOT NULL DEFAULT 0,
+                    raffle_ticket INTEGER NOT NULL DEFAULT 0,
+                    makeup_card INTEGER NOT NULL DEFAULT 0
+                );
                 """;
     }
 }

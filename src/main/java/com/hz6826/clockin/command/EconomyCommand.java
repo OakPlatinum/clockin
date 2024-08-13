@@ -4,9 +4,11 @@ import com.hz6826.clockin.api.FabricUtils;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -62,14 +64,27 @@ public class EconomyCommand {
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.withdraw", amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
 
-    public static void transfer(CommandContext<ServerCommandSource> context){
-        // TODO
+    public static void transfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity toPlayer = EntityArgumentType.getPlayer(context, "to");
+        if (toPlayer.equals(context.getSource().getPlayer())) {
+            context.getSource().sendError(Text.translatable("command.clockin.economy.transfer.self"));
+            return;
+        }
+        UserWithAccountAbstract fromUser = ClockInServer.DATABASE_MANAGER.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+        UserWithAccountAbstract toUser = ClockInServer.DATABASE_MANAGER.getUserByUUID(toPlayer.getUuidAsString());
+        double amount = DoubleArgumentType.getDouble(context, "amount");
+        if (!fromUser.hasEnoughBalance(amount)) {
+            context.getSource().sendError(Text.translatable("command.clockin.economy.transfer.failed", amount, CURRENCY_NAME));
+            return;
+        }
+        fromUser.transferBalance(amount, toUser);
+        context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.transfer.success", amount, CURRENCY_NAME, toPlayer.getDisplayName()).formatted(Formatting.GREEN), false);
     }
 
     public static void getBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
         double balance = user.getBalance();
-        double rank = user.getBalanceRank();
+        int rank = user.getBalanceRank();
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.balance", balance, CURRENCY_NAME, rank).formatted(Formatting.AQUA), false);
     }
 }

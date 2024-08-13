@@ -1,4 +1,4 @@
-package com.hz6826.clockin.sql.model.mysql;
+package com.hz6826.clockin.sql.model.sqlite;
 
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import net.fabricmc.api.EnvType;
@@ -16,12 +16,11 @@ public record DailyClockInRecord(Date date, String uuid, Time time, int rank) im
     public static String createTableSQL() {
         return """
                 CREATE TABLE IF NOT EXISTS daily_clock_in_records (
-                    id INT NOT NULL AUTO_INCREMENT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     date DATE,
-                    uuid VARCHAR(36),
-                    time TIME,
-                    PRIMARY KEY (id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                    uuid TEXT,
+                    time TIME
+                );
                 """;
     }
 }

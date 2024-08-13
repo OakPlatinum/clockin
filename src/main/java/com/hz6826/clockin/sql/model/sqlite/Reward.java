@@ -1,19 +1,19 @@
-package com.hz6826.clockin.sql.model.mysql;
+package com.hz6826.clockin.sql.model.sqlite;
 
-import com.hz6826.clockin.sql.MySQLDatabaseManager;
+import com.hz6826.clockin.sql.SQLiteDatabaseManager;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Reward model for MySQL database.
+ * Reward model for SQLite database.
  * key: unique identifier for the reward
  * key rules:
  * Daily Reward: daily_reward
  * Cumulative Reward: cumulative_reward_{days}_monthly
  * Custom Reward: custom_reward_{name}
  * @author OakPlatinum
- * @see com.hz6826.clockin.sql.model.interfaces.RewardInterface
+ * @see RewardInterface
  */
 public class Reward implements RewardInterface {
     private String key;
@@ -100,7 +100,7 @@ public class Reward implements RewardInterface {
 
     @Override
     public void update(){
-        MySQLDatabaseManager.getInstance().createOrUpdateReward(this);
+        SQLiteDatabaseManager.getInstance().createOrUpdateReward(this);
     }
 
     @Override
@@ -112,16 +112,15 @@ public class Reward implements RewardInterface {
     public static @NotNull String createTableSQL() {
         return """
                 CREATE TABLE IF NOT EXISTS rewards (
-                    id INT NOT NULL AUTO_INCREMENT,
-                    `key` VARCHAR(255) NOT NULL,
-                    translatable_key VARCHAR(255) NOT NULL,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [key] TEXT NOT NULL,
+                    translatable_key TEXT NOT NULL,
                     item_list_serialized TEXT,
-                    money DOUBLE,
-                    raffle_tickets INT,
-                    makeup_cards INT,
-                    PRIMARY KEY (id),
-                    UNIQUE KEY `key` (`key`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                    money REAL,
+                    raffle_tickets INTEGER,
+                    makeup_cards INTEGER,
+                    UNIQUE ("key")
+                );
                 """;
     }
 }

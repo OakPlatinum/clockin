@@ -30,10 +30,10 @@ public class DailyClockInCommand {
                 // Give Daily Reward
                 DailyClockInRecordInterface finalDailyClockInRecord = dailyClockInRecord;
                 Text rewardText = FabricUtils.giveReward(context.getSource().getPlayerOrThrow(), "daily_reward");
-                if(rewardText != null) {
+                if(rewardText == null) {
                     rewardText = Text.translatable("command.clockin.reward.null");
                 }
-                context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success", Text.literal(String.valueOf(finalDailyClockInRecord.getRank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN), false);
+                context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success", Text.literal(String.valueOf(finalDailyClockInRecord.rank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN), false);
                 Text finalRewardText = rewardText;
                 context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.reward", finalRewardText), false);
 
@@ -57,12 +57,12 @@ public class DailyClockInCommand {
                     context.getSource().sendFeedback(() -> specificDateRewardText, false);
                 }
                 // Broadcast Daily Clock-in
-                Text message = Text.translatable("command.clockin.dailyclockin.success.broadcast", context.getSource().getPlayerOrThrow().getName(), Text.literal(String.valueOf(finalDailyClockInRecord.getRank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN);
+                Text message = Text.translatable("command.clockin.dailyclockin.success.broadcast", context.getSource().getPlayerOrThrow().getName(), Text.literal(String.valueOf(finalDailyClockInRecord.rank())).formatted(Formatting.GOLD)).formatted(Formatting.GREEN);
                 context.getSource().getServer().getPlayerManager().broadcast(message, false);
             }
         } else {
             DailyClockInRecordInterface finalDailyClockInRecord1 = dailyClockInRecord;
-            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.already", Text.literal(String.valueOf(finalDailyClockInRecord1.getRank())).formatted(Formatting.GOLD), Text.literal(finalDailyClockInRecord1.getTime().toLocalTime().format(dateTimeFormatter)).formatted(Formatting.BLUE)), false);
+            context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.already", Text.literal(String.valueOf(finalDailyClockInRecord1.rank())).formatted(Formatting.GOLD), Text.literal(finalDailyClockInRecord1.time().toLocalTime().format(dateTimeFormatter)).formatted(Formatting.BLUE)), false);
         }
     }
 }
