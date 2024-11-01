@@ -38,6 +38,7 @@ public class CommandManager {
                     )
                     .then(literal("admin")
                             .requires(source -> source.hasPermissionLevel(4))
+                            // <editor-fold desc="reward commands">
                             .then(literal("reward")
                                     .then(literal("get")
                                             .then(argument("key", StringArgumentType.string()).executes(context -> executeAsync(context, AdminCommand::getReward)))
@@ -66,6 +67,8 @@ public class CommandManager {
                                             )
                                     )
                             )
+                            // </editor-fold>
+                            // <editor-fold desc="money commands">
                             .then(literal("money")
                                     .then(literal("get")
                                             .then(argument("player", EntityArgumentType.player()).executes(context -> executeAsync(context, AdminCommand::getPlayerBalance)))
@@ -86,6 +89,8 @@ public class CommandManager {
                                             )
                                     )
                             )
+                            // </editor-fold>
+                            // <editor-fold desc="raffleTicket commands">
                             .then(literal("raffleTicket")
                                     .then(literal("get")
                                             .then(argument("player", EntityArgumentType.player()).executes(context -> executeAsync(context, AdminCommand::getPlayerRaffleTicket)))
@@ -106,6 +111,8 @@ public class CommandManager {
                                             )
                                     )
                             )
+                                    // </editor-fold>
+                            // <editor-fold desc="makeupCard commands">
                             .then(literal("makeupCard")
                                     .then(literal("get")
                                             .then(argument("player", EntityArgumentType.player()).executes(context -> executeAsync(context, AdminCommand::getPlayerMakeupCard)))
@@ -126,10 +133,14 @@ public class CommandManager {
                                             )
                                     )
                             )
+                            // </editor-fold>
                     )
+                    // <editor-fold desc="utils commands">
                     .then(literal("showitem")
                             .executes(context -> executeAsync(context, UtilsCommand::showMainHandItem))
                     )
+                    // </editor-fold>
+                    // <editor-fold desc="economy commands">
                     .then(literal("economy")
                             .then(literal("balance").executes(context -> executeAsync(context, EconomyCommand::getBalance)))
                             .then(literal("deposit").executes(context -> executeAsync(context, EconomyCommand::deposit)))
@@ -141,7 +152,9 @@ public class CommandManager {
                                     )
                             )
                     )
+                    // </editor-fold>
             );
+            // <editor-fold desc="aliases">
             dispatcher.register(literal(rootCommand)
                     .then(literal("dci").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
                     .then(literal("i").executes(context -> executeAsync(context, LeaderboardCommand::showLeaderboard))
@@ -165,6 +178,7 @@ public class CommandManager {
                     .then(literal("si").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
                     .then(literal("e").redirect(clockInRootNode.getChild("economy")))
             );
+            // </editor-fold>
         }));
 
 
