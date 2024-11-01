@@ -1,6 +1,7 @@
 package com.hz6826.clockin.sql;
 
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.api.EnvType;
@@ -50,4 +51,11 @@ public interface DatabaseManager {
     RewardInterface getRewardOrNew(String key);
 
     RewardInterface createOrUpdateReward(RewardInterface reward);
+
+    // Mail methods
+    void sendMail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched);
+
+    List<MailInterface> getMails(String receiverUuid);
+
+    void setAttachmentFetched(MailInterface mail);
 }

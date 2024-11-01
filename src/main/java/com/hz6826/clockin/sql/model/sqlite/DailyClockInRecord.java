@@ -1,8 +1,6 @@
 package com.hz6826.clockin.sql.model.sqlite;
 
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -10,7 +8,6 @@ import java.sql.Time;
 /**
  * @param rank Not in clock in record table, generated automatically by DatabaseManager.
  */
-@Environment(EnvType.SERVER)
 public record DailyClockInRecord(Date date, String uuid, Time time, int rank) implements DailyClockInRecordInterface {
 
     public static String createTableSQL() {

@@ -3,9 +3,11 @@ package com.hz6826.clockin.sql;
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.hz6826.clockin.sql.model.sqlite.DailyClockInRecord;
+import com.hz6826.clockin.sql.model.sqlite.Mail;
 import com.hz6826.clockin.sql.model.sqlite.Reward;
 import com.hz6826.clockin.sql.model.sqlite.User;
 import net.fabricmc.api.EnvType;
@@ -36,6 +38,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
         executeUpdate(User.createTableSQL());
         executeUpdate(DailyClockInRecord.createTableSQL());
         executeUpdate(Reward.createTableSQL());
+        executeUpdate(Mail.createTableSQL());
     }
 
     @Override
@@ -43,6 +46,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
         executeUpdate("DROP TABLE IF EXISTS users");
         executeUpdate("DROP TABLE IF EXISTS daily_clock_in_records");
         executeUpdate("DROP TABLE IF EXISTS rewards");
+        executeUpdate("DROP TABLE IF EXISTS mails");
     }
 
     @Override
@@ -325,6 +329,51 @@ public class SQLiteDatabaseManager implements DatabaseManager{
             }
         }
         return getRewardOrNew(reward.getKey());
+    }
+
+    @Override
+    public void sendMail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO mails (sender_uuid, receiver_uuid, send_time, content, serialized_attachment, is_read, is_attachment_fetched) VALUES (?,?,?,?,?,?,?)")) {
+            preparedStatement.setString(1, senderUuid);
+            preparedStatement.setString(2, receiverUuid);
+            preparedStatement.setTimestamp(3, new java.sql.Timestamp(sendTime.getTime()));
+            preparedStatement.setString(4, content);
+            preparedStatement.setString(5, serializedAttachment);
+            preparedStatement.setBoolean(6, isRead);
+            preparedStatement.setBoolean(7, isAttachmentFetched);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to send mail: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MailInterface> getMails(String receiverUuid) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ?")) {
+            preparedStatement.setString(1, receiverUuid);
+            ResultSet rs = preparedStatement.executeQuery();
+            List<MailInterface> mails = new ArrayList<>();
+            while (rs.next()) {
+                mails.add(new com.hz6826.clockin.sql.model.mysql.Mail(rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getDate("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched")));
+            }
+            return mails;
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get mails: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public void setAttachmentFetched(MailInterface mail) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE mails SET is_attachment_fetched = ? WHERE sender_uuid = ? AND receiver_uuid = ? AND send_time = ?")) {
+            preparedStatement.setBoolean(1, true);
+            preparedStatement.setString(2, mail.getSenderUuid());
+            preparedStatement.setString(3, mail.getReceiverUuid());
+            preparedStatement.setTimestamp(4, new java.sql.Timestamp(mail.getSendTime().getTime()));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to set attachment fetched: " + e.getMessage());
+        }
     }
 
     private static final DatabaseManager instance = new SQLiteDatabaseManager();

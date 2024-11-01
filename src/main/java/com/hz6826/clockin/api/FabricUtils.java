@@ -108,11 +108,11 @@ public class FabricUtils {
     }
 
     public static Text giveReward(ServerPlayerEntity player, String rewardString){
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(rewardString);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
         if(!reward.isNew()) {
             FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
-            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+            UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
             user.addMakeupCard(reward.getMakeupCards());
@@ -122,11 +122,11 @@ public class FabricUtils {
     }
 
     public static Text giveReward(PlayerEntity player, String rewardString){
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(rewardString);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
         if(!reward.isNew()) {
             FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
-            UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+            UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
             user.addMakeupCard(reward.getMakeupCards());
