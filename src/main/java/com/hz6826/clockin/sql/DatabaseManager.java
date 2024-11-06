@@ -55,7 +55,7 @@ public interface DatabaseManager {
     // Mail methods
     void sendMail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched);
 
-    List<MailInterface> getMails(String receiverUuid);
+    List<MailInterface> getMails(String receiverUuid, int page, int pageSize);
 
     void setAttachmentFetched(MailInterface mail);
 }

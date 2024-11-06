@@ -348,7 +348,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public List<MailInterface> getMails(String receiverUuid) {
+    public List<MailInterface> getMails(String receiverUuid, int page, int pageSize) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ?")) {
             preparedStatement.setString(1, receiverUuid);
             ResultSet rs = preparedStatement.executeQuery();

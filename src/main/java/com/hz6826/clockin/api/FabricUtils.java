@@ -3,6 +3,7 @@ package com.hz6826.clockin.api;
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.server.ClockInServer;
+import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -22,6 +23,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class FabricUtils {
@@ -87,16 +90,19 @@ public class FabricUtils {
         MutableText text = Text.empty();
         if(!reward.getItemListSerialized().isBlank()) {
             ArrayList<ItemStack> itemStackList = deserializeItemStackList(reward.getItemListSerialized());
-            MutableText itemText = Text.empty();
-            for (ItemStack itemStack: itemStackList) {
-                itemText.append(generateItemStackComponent(itemStack));
-            }
-            text.append(Text.translatable("command.clockin.reward.title.item", itemText)).append("\n");
+            text.append(Text.translatable("command.clockin.reward.title.item", generateReadableRewardItemList(itemStackList))).append("\n");
         }
         if(reward.getMoney() != 0) text.append(Text.translatable("command.clockin.reward.title.money", reward.getMoney(), CURRENCY_NAME)).append("\n");
         if(reward.getRaffleTickets() != 0) text.append(Text.translatable("command.clockin.reward.title.raffle_ticket", reward.getRaffleTickets())).append("\n");
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
+    }
+    public static Text generateReadableRewardItemList(ArrayList<ItemStack> itemStackList){
+        MutableText itemText = Text.empty();
+        for (ItemStack itemStack: itemStackList) {
+            itemText.append(generateItemStackComponent(itemStack));
+        }
+        return itemText;
     }
     public static MutableText generateItemStackComponent(ItemStack itemStack) {
         MutableText itemText = Text.empty();
@@ -183,5 +189,35 @@ public class FabricUtils {
             amount += itemCount * denomination;
         }
         return amount;
+    }
+
+    public static void displayMailList(ServerPlayerEntity player, List<MailInterface> mailList){
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        MutableText text = Text.empty();
+        for (MailInterface mail : mailList) {
+            Text senderNameText = (Objects.equals(mail.getSenderUuid(), "00000000-0000-0000-0000-000000000000") ?
+                    Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
+                    Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
+            ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName();
+            MutableText mailText = Text.empty();
+            mailText.append(Text.translatable(
+                    "command.clockin.mail.content.overview",
+                    mail.getSendTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(dateTimeFormatter),
+                    senderNameText,
+                    Text.literal(mail.getContent())
+            ));
+            if(!mail.getSerializedAttachment().isBlank()) {
+                Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));
+                MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
+                if(mail.getAttachmentFetched()){
+                    rewardText = rewardText.formatted(Formatting.GRAY).formatted(Formatting.STRIKETHROUGH);
+                } else {
+                    rewardText = rewardText.formatted(Formatting.BLUE);
+                }
+                mailText.append(Text.literal("  ").append(rewardText));
+            }
+            text.append(mailText).append("\n");
+        }
+        player.sendMessage(text, false);
     }
 }

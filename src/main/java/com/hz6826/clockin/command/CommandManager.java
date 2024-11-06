@@ -153,6 +153,20 @@ public class CommandManager {
                             )
                     )
                     // </editor-fold>
+                    // <editor-fold desc="mail commands">
+                    .then(literal("mail")
+                            .then(literal("send")
+                                    .executes(context -> executeAsync(context, WIPCommand::WIP))
+                            )
+                            .then(literal("get")
+                                    .executes(context -> executeAsync(context, MailCommand::getMails))
+                                    .then(argument("page", IntegerArgumentType.integer())
+                                            .executes(context -> executeAsync(context, MailCommand::getMailsWithPage))
+                                    )
+                            )
+                            // TODO: fetch mail attachment command
+                    )
+                    // </editor-fold>
             );
             // <editor-fold desc="aliases">
             dispatcher.register(literal(rootCommand)

@@ -405,9 +405,11 @@ public class MySQLDatabaseManager implements DatabaseManager{
     }
 
     @Override
-    public List<MailInterface> getMails(String receiverUuid) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ?")) {
+    public List<MailInterface> getMails(String receiverUuid, int page, int pageSize) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ? ORDER BY send_time DESC LIMIT ? OFFSET ?")) {
             preparedStatement.setString(1, receiverUuid);
+            preparedStatement.setInt(2, pageSize);
+            preparedStatement.setInt(3, (page - 1) * pageSize);
             ResultSet rs = preparedStatement.executeQuery();
             List<MailInterface> mails = new ArrayList<>();
             while (rs.next()) {
