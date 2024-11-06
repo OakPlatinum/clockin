@@ -36,7 +36,7 @@ public abstract class MixinPlayerManager{
                 try {
                     ClockInServer.DBM.getConn();
                 } catch (SQLException e) {
-                    player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(Formatting.RED));
+                    player.sendMessage(Text.translatable("command.clockin.error.player_join").formatted(Formatting.RED));
                     ClockIn.LOGGER.error("Failed to attach Clock In user.");
                     return;
                 }
