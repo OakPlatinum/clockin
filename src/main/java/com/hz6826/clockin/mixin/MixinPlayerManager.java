@@ -5,6 +5,7 @@ import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
@@ -19,7 +20,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.hz6826.clockin.ClockIn;
 
 import java.sql.Date;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 
 @Mixin(PlayerManager.class)
 public abstract class MixinPlayerManager{
@@ -28,25 +31,34 @@ public abstract class MixinPlayerManager{
 
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        if(ClockInServer.DBM != null){
-            UserWithAccountAbstract clockInUser = ClockInServer.DBM.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName()));
-            player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
-            player.sendMessage(Text.translatable("command.clockin.init.headline2").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
-            player.sendMessage(Text.translatable("command.clockin.init.welcome", player.getName()).formatted(CLOCKIN_INIT_MESSAGE_COLOR));
-            Text balanceText = Text.literal(String.valueOf(clockInUser.getBalance())).formatted(Formatting.GOLD);
-            Text rankText = Text.literal(String.valueOf(clockInUser.getBalanceRank())).formatted(Formatting.GOLD);
-            player.sendMessage(Text.translatable("command.clockin.init.balance", balanceText, rankText));
-            Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DBM.getRewardOrNew("daily_reward"));
-            if(ClockInServer.DBM.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
-                Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
-                        .withColor(Formatting.AQUA) // 设置文本颜色
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin dailyclockin"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardText)));
-                player.sendMessage(Text.translatable("command.clockin.init.clockin.require", clockInButton));
+        CompletableFuture.runAsync(() -> {
+            if (ClockInServer.DBM != null) {
+                try {
+                    ClockInServer.DBM.getConn();
+                } catch (SQLException e) {
+                    player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(Formatting.RED));
+                    ClockIn.LOGGER.error("Failed to attach Clock In user.");
+                    return;
+                }
+                UserWithAccountAbstract clockInUser = ClockInServer.DBM.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName()));
+                player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
+                player.sendMessage(Text.translatable("command.clockin.init.headline2").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
+                player.sendMessage(Text.translatable("command.clockin.init.welcome", player.getName()).formatted(CLOCKIN_INIT_MESSAGE_COLOR));
+                Text balanceText = Text.literal(String.valueOf(clockInUser.getBalance())).formatted(Formatting.GOLD);
+                Text rankText = Text.literal(String.valueOf(clockInUser.getBalanceRank())).formatted(Formatting.GOLD);
+                player.sendMessage(Text.translatable("command.clockin.init.balance", balanceText, rankText));
+                Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DBM.getRewardOrNew("daily_reward"));
+                if (ClockInServer.DBM.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
+                    Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
+                            .withColor(Formatting.AQUA) // 设置文本颜色
+                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin dailyclockin"))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardText)));
+                    player.sendMessage(Text.translatable("command.clockin.init.clockin.require", clockInButton));
+                }
+                player.sendMessage(Text.translatable("command.clockin.init.foot").formatted(Formatting.AQUA));
+            } else {
+                ClockIn.LOGGER.error("Failed to attach Clock In user.");
             }
-            player.sendMessage(Text.translatable("command.clockin.init.foot").formatted(Formatting.AQUA));
-        } else {
-            ClockIn.LOGGER.error("Failed to attach Clock In user.");
-        }
+        });
     }
 }
