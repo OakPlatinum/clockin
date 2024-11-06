@@ -6,6 +6,7 @@
   "command.clockin.error.must_be_player": "只允许一个玩家，但提供的选择器允许多个玩家",
   "command.clockin.error.work_in_progress": "该功能还在加紧开发中，敬请期待！",
   "command.clockin.error.not_enough_space": "您的背包空间不足，无法存放奖励！",
+  "command.clockin.error.player_join": "ClockIn初始化失败！这可能是网络问题或配置文件错误，请联系你的服务器管理员以反馈该问题！",
   "command.clockin.error": "执行失败！请稍后重试或联系管理员反馈该问题！",
   "command.clockin.formatter.time": "hh:mm:ss",
   "command.clockin.clockin.loading": "正在加载Clock In界面！",
@@ -56,5 +57,12 @@
   "command.clockin.economy.not_enough_money": "您的账户余额不足！",
   "command.clockin.economy.transfer.success": "成功将 %d %s 转账给玩家 %s！",
   "command.clockin.economy.transfer.failed": "转账失败！您的账户余额不足！",
-  "command.clockin.economy.transfer.self": "不能转账给自己！"
+  "command.clockin.economy.transfer.self": "不能转账给自己！",
+
+  "command.clockin.mail.content.overview": "[%s] %s：%s",
+  "command.clockin.mail.content.overview.reward": "[领取附件]",
+  "command.clockin.mail.content.overview.reward_fetched": "附件已领取",
+  "command.clockin.mail.content.overview.bar.page": "",
+
+  "command.clockin.system": "[系统]"
 }
