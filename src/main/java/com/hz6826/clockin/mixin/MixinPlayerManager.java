@@ -28,16 +28,16 @@ public abstract class MixinPlayerManager{
 
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        if(ClockInServer.DATABASE_MANAGER != null){
-            UserWithAccountAbstract clockInUser = ClockInServer.DATABASE_MANAGER.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName()));
+        if(ClockInServer.DBM != null){
+            UserWithAccountAbstract clockInUser = ClockInServer.DBM.getOrCreateUser(player.getUuidAsString(), String.valueOf(player.getName()));
             player.sendMessage(Text.translatable("command.clockin.init.headline").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
             player.sendMessage(Text.translatable("command.clockin.init.headline2").formatted(CLOCKIN_INIT_MESSAGE_COLOR));
             player.sendMessage(Text.translatable("command.clockin.init.welcome", player.getName()).formatted(CLOCKIN_INIT_MESSAGE_COLOR));
             Text balanceText = Text.literal(String.valueOf(clockInUser.getBalance())).formatted(Formatting.GOLD);
             Text rankText = Text.literal(String.valueOf(clockInUser.getBalanceRank())).formatted(Formatting.GOLD);
             player.sendMessage(Text.translatable("command.clockin.init.balance", balanceText, rankText));
-            Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DATABASE_MANAGER.getRewardOrNew("daily_reward"));
-            if(ClockInServer.DATABASE_MANAGER.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
+            Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DBM.getRewardOrNew("daily_reward"));
+            if(ClockInServer.DBM.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
                 Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
                         .withColor(Formatting.AQUA) // 设置文本颜色
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin dailyclockin"))

@@ -16,7 +16,7 @@ public class ClockInServer implements DedicatedServerModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
     private static final Logger LOGGER = ClockIn.LOGGER;
-	public static DatabaseManager DATABASE_MANAGER;
+	public static DatabaseManager DBM;
 
 	@Override
 	public void onInitializeServer() {
@@ -30,17 +30,17 @@ public class ClockInServer implements DedicatedServerModInitializer {
 		BasicConfig config = BasicConfig.getConfig();
 		new CommandManager();
 		if (config.getDatabaseType().equals("mysql")) {
-			DATABASE_MANAGER = new MySQLDatabaseManager();
+			DBM = new MySQLDatabaseManager();
 		} else if (config.getDatabaseType().equals("sqlite")) {
-			DATABASE_MANAGER = new SQLiteDatabaseManager();
+			DBM = new SQLiteDatabaseManager();
 		}
 		try {
-			DATABASE_MANAGER.getConn();
+			DBM.getConn();
 		} catch (SQLException e) {
 			LOGGER.error("Couldn't connect to SQL server!" + e.getMessage());
 			return;
 		}
-		DATABASE_MANAGER.createTables();
+		DBM.createTables();
 
 	}
 }

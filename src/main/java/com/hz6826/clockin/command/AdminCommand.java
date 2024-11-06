@@ -23,7 +23,7 @@ public class AdminCommand {
     public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
     public static void getReward(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         if (reward.isNew()) {
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key).formatted(Formatting.RED), false);
         } else {
@@ -42,9 +42,9 @@ public class AdminCommand {
                 itemList.add(itemStack);
             }
         }
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
 
@@ -57,9 +57,9 @@ public class AdminCommand {
                 itemList.add(itemStack);
             }
         }
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
 
@@ -70,36 +70,36 @@ public class AdminCommand {
         if (!itemStack.isEmpty()) {
             itemList.add(itemStack);
         }
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
 
     public static void setRewardMoney(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final double amount = DoubleArgumentType.getDouble(context, "amount");
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setMoney(amount);
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.money.success", key, amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
 
     public static void setRewardRaffleTicket(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final int amount = IntegerArgumentType.getInteger(context, "amount");
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setRaffleTickets(amount);
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.raffle_ticket.success", key, amount).formatted(Formatting.GREEN), false);
     }
 
     public static void setRewardMakeupCard(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         final int amount = IntegerArgumentType.getInteger(context, "amount");
-        RewardInterface reward = ClockInServer.DATABASE_MANAGER.getRewardOrNew(key);
+        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         reward.setMakeupCards(amount);
-        ClockInServer.DATABASE_MANAGER.createOrUpdateReward(reward);
+        ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.makeup_card.success", key, amount).formatted(Formatting.GREEN), false);
     }
 
@@ -116,81 +116,81 @@ public class AdminCommand {
 
     public static void getPlayerBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.money", player.getName(), user.getBalance(), CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
 
     public static void setPlayerBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.setBalance(DoubleArgumentType.getDouble(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.money.success", player.getName(), DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
 
     public static void addPlayerBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.addBalance(DoubleArgumentType.getDouble(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.money.success", DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME, player.getName()).formatted(Formatting.GREEN), false);
     }
 
     public static void subtractPlayerBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.subtractBalance(DoubleArgumentType.getDouble(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.money.success", DoubleArgumentType.getDouble(context, "amount"), CURRENCY_NAME, player.getName()).formatted(Formatting.GREEN), false);
     }
 
     public static void getPlayerRaffleTicket(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.raffle_ticket", player.getName(), user.getRaffleTicket()).formatted(Formatting.GREEN), false);
     }
 
     public static void setPlayerRaffleTicket(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.setRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.raffle_ticket.success", player.getName(), IntegerArgumentType.getInteger(context, "amount")).formatted(Formatting.GREEN), false);
     }
 
     public static void addPlayerRaffleTicket(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.addRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.raffle_ticket.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
     }
 
     public static void removePlayerRaffleTicket(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.removeRaffleTicket(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.raffle_ticket.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
     }
 
     public static void getPlayerMakeupCard(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.get.makeup_card", player.getName(), user.getMakeupCard()).formatted(Formatting.GREEN), false);
     }
 
     public static void setPlayerMakeupCard(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.setMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.set.makeup_card.success", player.getName(), IntegerArgumentType.getInteger(context, "amount")).formatted(Formatting.GREEN), false);
     }
 
     public static void addPlayerMakeupCard(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.addMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.give.makeup_card.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
     }
 
     public static void removePlayerMakeupCard(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        final UserWithAccountAbstract user = ClockInServer.DATABASE_MANAGER.getUserByUUID(player.getUuidAsString());
+        final UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
         user.removeMakeupCard(IntegerArgumentType.getInteger(context, "amount"));
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.player.take.makeup_card.success", IntegerArgumentType.getInteger(context, "amount"), player.getName()).formatted(Formatting.GREEN), false);
     }
