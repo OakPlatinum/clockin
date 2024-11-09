@@ -12,6 +12,7 @@ import java.util.List;
 
 @Environment(EnvType.SERVER)
 public interface DatabaseManager {
+    String ADMIN_UUID = "00000000-0000-0000-0000-000000000000";
     void createTables();
     void dropTables();
 
@@ -58,4 +59,6 @@ public interface DatabaseManager {
     List<MailInterface> getMails(String receiverUuid, int page, int pageSize);
 
     void setAttachmentFetched(MailInterface mail);
+
+    int getMailCount(String receiverUuid);
 }

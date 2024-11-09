@@ -14,11 +14,7 @@ import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
@@ -62,16 +58,6 @@ public class FabricUtils {
         }
         return stackList;
     }
-    public static void giveItemList(@NotNull List<ItemStack> stackList, ServerPlayerEntity player) {
-        for (ItemStack stack : stackList) {
-            giveItem(stack, player);
-        }
-    }
-    public static void giveItem(@NotNull ItemStack stack, ServerPlayerEntity player) {
-        if (!stack.isEmpty()) {
-            player.giveItemStack(stack);
-        }
-    }
     public static void giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player) {
         for (ItemStack stack : stackList) {
             giveItem(stack, player);
@@ -113,20 +99,6 @@ public class FabricUtils {
         return itemText;
     }
 
-    public static Text giveReward(ServerPlayerEntity player, String rewardString){
-        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
-        Text rewardText = null;
-        if(!reward.isNew()) {
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
-            UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
-            user.addBalance(reward.getMoney());
-            user.addRaffleTicket(reward.getRaffleTickets());
-            user.addMakeupCard(reward.getMakeupCards());
-            rewardText = FabricUtils.generateReadableReward(reward);
-        }
-        return rewardText;
-    }
-
     public static Text giveReward(PlayerEntity player, String rewardString){
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
@@ -162,15 +134,10 @@ public class FabricUtils {
 
         return itemStackList; // Return the list of ItemStacks
     }
-    public static void givePhysicalMoney(ServerPlayerEntity player, int amount){
-        ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemStackList, player);
-    }
     public static void givePhysicalMoney(PlayerEntity player, int amount){
         ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
         FabricUtils.giveItemList(itemStackList, player);
     }
-
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
 
@@ -191,14 +158,17 @@ public class FabricUtils {
         return amount;
     }
 
-    public static void displayMailList(ServerPlayerEntity player, List<MailInterface> mailList){
+    public static void displayMailListTitle(PlayerEntity player){
+        player.sendMessage(Text.translatable("command.clockin.mail.title").formatted(Formatting.GOLD), false);
+    }
+
+    public static void displayMailList(PlayerEntity player, List<MailInterface> mailList){
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         MutableText text = Text.empty();
         for (MailInterface mail : mailList) {
-            Text senderNameText = (Objects.equals(mail.getSenderUuid(), "00000000-0000-0000-0000-000000000000") ?
+            Text senderNameText = (Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.ADMIN_UUID) ?
                     Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
                     Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
-            ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName();
             MutableText mailText = Text.empty();
             mailText.append(Text.translatable(
                     "command.clockin.mail.content.overview",
@@ -206,7 +176,7 @@ public class FabricUtils {
                     senderNameText,
                     Text.literal(mail.getContent())
             ));
-            if(!mail.getSerializedAttachment().isBlank()) {
+            if(mail.getSerializedAttachment() != null && !mail.getSerializedAttachment().isBlank()) {
                 Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));
                 MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
                 if(mail.getAttachmentFetched()){
@@ -218,6 +188,26 @@ public class FabricUtils {
             }
             text.append(mailText).append("\n");
         }
+        player.sendMessage(text, false);
+    }
+
+    public static void displayMailListBottomBar(PlayerEntity player, int page, int pageCount){
+        MutableText text = Text.empty();
+        text.append(page > 1 ?
+                Text.translatable("command.clockin.mail.content.overview.bar.previous")
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail get " + (page - 1))))
+                        .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE):
+                Text.translatable("command.clockin.mail.content.overview.bar.previous")
+                        .formatted(Formatting.GRAY, Formatting.ITALIC));
+        text.append(Text.literal("  "));
+        text.append(Text.translatable("command.clockin.mail.content.overview.bar.page", page, pageCount).formatted(Formatting.AQUA, Formatting.BOLD));
+        text.append(Text.literal("  "));
+        text.append(page < pageCount ?
+                Text.translatable("command.clockin.mail.content.overview.bar.next")
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail get " + (page + 1))))
+                        .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE):
+                Text.translatable("command.clockin.mail.content.overview.bar.next")
+                        .formatted(Formatting.GRAY, Formatting.ITALIC));
         player.sendMessage(text, false);
     }
 }

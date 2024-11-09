@@ -59,10 +59,15 @@
   "command.clockin.economy.transfer.failed": "转账失败！您的账户余额不足！",
   "command.clockin.economy.transfer.self": "不能转账给自己！",
 
+  "command.clockin.mail.title": "======收件箱======",
   "command.clockin.mail.content.overview": "[%s] %s：%s",
   "command.clockin.mail.content.overview.reward": "[领取附件]",
   "command.clockin.mail.content.overview.reward_fetched": "附件已领取",
-  "command.clockin.mail.content.overview.bar.page": "",
+  "command.clockin.mail.content.overview.bar.previous": "[上一页]",
+  "command.clockin.mail.content.overview.bar.page": "第 %d/%d 页",
+  "command.clockin.mail.content.overview.bar.next": "[下一页]",
+  "command.clockin.mail.no_mail": "收件箱为空！",
+  "command.clockin.mail.invalid_page": "无效的页码！",
 
   "command.clockin.system": "[系统]"
 }

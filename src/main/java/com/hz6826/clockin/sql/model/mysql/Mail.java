@@ -4,18 +4,18 @@ import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 public class Mail implements MailInterface {
     private final String senderUuid;  // If admin, senderUuid is 00000000-0000-0000-0000-000000000000
     private final String receiverUuid;
-    private final Date sendTime;
+    private final Timestamp sendTime;
     private final String content;
     private final String serializedAttachment;
     private final boolean isRead;
     private final boolean isAttachmentFetched;
 
-    public Mail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+    public Mail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
         this.senderUuid = senderUuid;
         this.receiverUuid = receiverUuid;
         this.sendTime = sendTime;
@@ -25,16 +25,18 @@ public class Mail implements MailInterface {
         this.isAttachmentFetched = isAttachmentFetched;
     }
 
+    @Override
     public String getSenderUuid() {
         return senderUuid;
     }
 
+    @Override
     public String getReceiverUuid() {
         return receiverUuid;
     }
 
     @Override
-    public Date getSendTime() {
+    public Timestamp getSendTime() {
         return sendTime;
     }
 
@@ -48,10 +50,12 @@ public class Mail implements MailInterface {
         return serializedAttachment;
     }
 
+    @Override
     public boolean getRead() {
         return isRead;
     }
 
+    @Override
     public boolean getAttachmentFetched() {
         return isAttachmentFetched;
     }

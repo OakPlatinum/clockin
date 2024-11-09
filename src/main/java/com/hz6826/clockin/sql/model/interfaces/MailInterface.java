@@ -1,13 +1,13 @@
 package com.hz6826.clockin.sql.model.interfaces;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 public interface MailInterface {
     String getSenderUuid();
 
     String getReceiverUuid();
 
-    Date getSendTime();
+    Timestamp getSendTime();
 
     String getContent();
 

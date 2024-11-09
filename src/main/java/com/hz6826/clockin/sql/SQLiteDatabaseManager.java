@@ -56,7 +56,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
             stmt.executeUpdate(sql);
             stmt.close();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to execute update: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to execute update: " + e.getMessage(), e);
         }
     }
 
@@ -65,7 +65,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
         try {
             return preparedStatement.executeQuery();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to execute query: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to execute query: " + e.getMessage(), e);
             return null;
         }
     }
@@ -82,7 +82,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 preparedStatement.executeUpdate();
                 ClockIn.LOGGER.info("Created user " + playerName + " [" + uuid + "]");
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to create user: " + e.getMessage());
+                ClockIn.LOGGER.error("Failed to create user: " + e.getMessage(), e);
             }
         } else if (!Objects.equals(user.getPlayerName(), playerName)) {
             user.setPlayerName(playerName);
@@ -101,7 +101,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 return null;
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get user by UUID: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get user by UUID: " + e.getMessage(), e);
         }
         return null;
     }
@@ -117,7 +117,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 return null;
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get user by name: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get user by name: " + e.getMessage(), e);
         }
         return null;
     }
@@ -253,7 +253,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage(), e);
         }
         return 0;
     }
@@ -269,7 +269,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage(), e);
         }
         return 0;
     }
@@ -296,7 +296,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 return new Reward(key, "", "", 0, 0, 0);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get reward: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get reward: " + e.getMessage(), e);
         }
         return null;
     }
@@ -313,7 +313,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 preparedStatement.setInt(6, reward.getMakeupCards());
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to create reward: " + e.getMessage());
+                ClockIn.LOGGER.error("Failed to create reward: " + e.getMessage(), e);
             }
         } else {
             try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE rewards SET translatable_key =?, item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =? WHERE [key] = ?")) {
@@ -325,7 +325,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
                 preparedStatement.setString(6, reward.getKey());
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to update reward: " + e.getMessage());
+                ClockIn.LOGGER.error("Failed to update reward: " + e.getMessage(), e);
             }
         }
         return getRewardOrNew(reward.getKey());
@@ -343,22 +343,24 @@ public class SQLiteDatabaseManager implements DatabaseManager{
             preparedStatement.setBoolean(7, isAttachmentFetched);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to send mail: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to send mail: " + e.getMessage(), e);
         }
     }
 
     @Override
     public List<MailInterface> getMails(String receiverUuid, int page, int pageSize) {
-        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ?")) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE receiver_uuid = ? ORDER BY send_time DESC LIMIT ? OFFSET ?")) {
             preparedStatement.setString(1, receiverUuid);
+            preparedStatement.setInt(2, pageSize);
+            preparedStatement.setInt(3, (page - 1) * pageSize);
             ResultSet rs = preparedStatement.executeQuery();
             List<MailInterface> mails = new ArrayList<>();
             while (rs.next()) {
-                mails.add(new com.hz6826.clockin.sql.model.mysql.Mail(rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getDate("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched")));
+                mails.add(new Mail(rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getTimestamp("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched")));
             }
             return mails;
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get mails: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to get mails: " + e.getMessage(), e);
         }
         return null;
     }
@@ -372,8 +374,22 @@ public class SQLiteDatabaseManager implements DatabaseManager{
             preparedStatement.setTimestamp(4, new java.sql.Timestamp(mail.getSendTime().getTime()));
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to set attachment fetched: " + e.getMessage());
+            ClockIn.LOGGER.error("Failed to set attachment fetched: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public int getMailCount(String receiverUuid) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT COUNT(*) FROM mails WHERE receiver_uuid = ?")) {
+            preparedStatement.setString(1, receiverUuid);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get mail count: " + e.getMessage(), e);
+        }
+        return 0;
     }
 
     private static final DatabaseManager instance = new SQLiteDatabaseManager();

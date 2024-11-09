@@ -210,7 +210,7 @@ public class CommandManager {
                 function.execute(context);
             } catch (Exception e) {
                 context.getSource().sendError(Text.translatable("command.clockin.error"));
-                ClockIn.LOGGER.error("Error while executing dailyclockin command: " + e.getMessage());
+                ClockIn.LOGGER.error("Error while executing clockin command: " + e.getMessage(), e);
             }
             waitingPlayers.remove(context.getSource().getPlayer());
         });
