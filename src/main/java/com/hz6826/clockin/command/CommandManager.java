@@ -155,6 +155,7 @@ public class CommandManager {
                     // </editor-fold>
                     // <editor-fold desc="mail commands">
                     .then(literal("mail")
+                            .executes(context -> executeAsync(context, MailCommand::getMails))
                             .then(literal("send")
                                     .executes(context -> executeAsync(context, WIPCommand::WIP))
                             )
@@ -164,7 +165,11 @@ public class CommandManager {
                                             .executes(context -> executeAsync(context, MailCommand::getMailsWithPage))
                                     )
                             )
-                            // TODO: fetch mail attachment command
+                            .then(literal("getAttachment")
+                                    .then(argument("mail_id", IntegerArgumentType.integer())
+                                            .executes(context -> executeAsync(context, MailCommand::getAttachment))
+                                    )
+                            )
                     )
                     // </editor-fold>
             );
@@ -176,6 +181,7 @@ public class CommandManager {
                     .then(literal("a").redirect(clockInRootNode.getChild("admin")))
                     .then(literal("si").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
                     .then(literal("e").redirect(clockInRootNode.getChild("economy")))
+                    .then(literal("m").redirect(clockInRootNode.getChild("mail")))
             );
             dispatcher.register(literal(rootCommandAlias)
                     .then(literal("dailyclockin").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
@@ -184,6 +190,7 @@ public class CommandManager {
                     .then(literal("admin").redirect(clockInRootNode.getChild("admin")))
                     .then(literal("showitem").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
                     .then(literal("economy").redirect(clockInRootNode.getChild("economy")))
+                    .then(literal("mail").redirect(clockInRootNode.getChild("mail")))
 
                     .then(literal("dci").executes(context -> executeAsync(context, DailyClockInCommand::dailyClockIn)))
                     .then(literal("i").executes(context -> executeAsync(context, InfoCommand::showInfo)))
@@ -191,6 +198,7 @@ public class CommandManager {
                     .then(literal("a").redirect(clockInRootNode.getChild("admin")))
                     .then(literal("si").executes(context -> executeAsync(context, UtilsCommand::showMainHandItem)))
                     .then(literal("e").redirect(clockInRootNode.getChild("economy")))
+                    .then(literal("m").redirect(clockInRootNode.getChild("mail")))
             );
             // </editor-fold>
         }));

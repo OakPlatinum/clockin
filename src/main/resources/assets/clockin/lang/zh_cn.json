@@ -29,6 +29,9 @@
   "command.clockin.reward.get.null": "没有找到键值为 %s 的奖励！",
   "command.clockin.reward.get.success": "键值为 %s 的奖励如下：",
   "command.clockin.reward.give.success": "成功给予玩家 %s 奖励：%s！",
+  "command.clockin.reward.give.success.receiver": "您刚刚被给予奖励 %s",
+  "command.clockin.reward.give.success.mail": "对方背包已满，所以部分奖励已转移至邮箱！",
+  "command.clockin.reward.give.success.mail.receiver": "您的背包已满，所以部分奖励已转移至邮箱，输入/cin m get获取剩余奖励！",
   "command.clockin.reward.set.item.success": "成功设置 %s 的奖励物品！",
   "command.clockin.reward.set.money.success": "成功设置 %s 的奖励金额为 %d %s！",
   "command.clockin.reward.set.raffle_ticket.success": "成功设置 %s 的抽奖券为%d张！",
@@ -68,6 +71,11 @@
   "command.clockin.mail.content.overview.bar.next": "[下一页]",
   "command.clockin.mail.no_mail": "收件箱为空！",
   "command.clockin.mail.invalid_page": "无效的页码！",
+  "command.clockin.mail.invalid_mail_id": "无效的邮件ID！",
+  "command.clockin.mail.no_attachment": "该邮件没有附件！",
+  "command.clockin.mail.attachment_already_fetched": "该附件已被领取！",
+  "command.clockin.mail.attachment_fetched": "成功领取附件！",
+  "command.clockin.mail.no_slot_for_attachment": "你的背包空间不足，无法领取附件！",
 
   "command.clockin.system": "[系统]"
 }

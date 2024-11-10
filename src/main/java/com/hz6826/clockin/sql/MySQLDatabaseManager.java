@@ -389,11 +389,11 @@ public class MySQLDatabaseManager implements DatabaseManager{
 
     // Mail methods
     @Override
-    public void sendMail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+    public void sendMail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO mails (sender_uuid, receiver_uuid, send_time, content, serialized_attachment, is_read, is_attachment_fetched) VALUES (?,?,?,?,?,?,?)")) {
             preparedStatement.setString(1, senderUuid);
             preparedStatement.setString(2, receiverUuid);
-            preparedStatement.setTimestamp(3, new java.sql.Timestamp(sendTime.getTime()));
+            preparedStatement.setTimestamp(3, sendTime);
             preparedStatement.setString(4, content);
             preparedStatement.setString(5, serializedAttachment);
             preparedStatement.setBoolean(6, isRead);
@@ -413,7 +413,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             ResultSet rs = preparedStatement.executeQuery();
             List<MailInterface> mails = new ArrayList<>();
             while (rs.next()) {
-                mails.add(new Mail(rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getTimestamp("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched")));
+                mails.add(new Mail(rs.getInt("id"), rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getTimestamp("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched")));
             }
             return mails;
         } catch (SQLException e) {
@@ -447,6 +447,20 @@ public class MySQLDatabaseManager implements DatabaseManager{
             ClockIn.LOGGER.error("Failed to get mail count: " + e.getMessage(), e);
         }
         return 0;
+    }
+
+    @Override
+    public MailInterface getMailById(int id) {
+        try (PreparedStatement preparedStatement = getConn().prepareStatement("SELECT * FROM mails WHERE id = ?")) {
+            preparedStatement.setInt(1, id);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return new Mail(rs.getInt("id"), rs.getString("sender_uuid"), rs.getString("receiver_uuid"), rs.getTimestamp("send_time"), rs.getString("content"), rs.getString("serialized_attachment"), rs.getBoolean("is_read"), rs.getBoolean("is_attachment_fetched"));
+            }
+        } catch (SQLException e) {
+            ClockIn.LOGGER.error("Failed to get mail by id: " + e.getMessage(), e);
+        }
+        return null;
     }
 
 

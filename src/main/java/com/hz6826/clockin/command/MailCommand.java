@@ -4,9 +4,12 @@ import com.hz6826.clockin.api.FabricUtils;
 import com.hz6826.clockin.server.ClockInServer;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.List;
 
 public class MailCommand {
     public static final int PAGE_SIZE = 5;
@@ -53,6 +56,29 @@ public class MailCommand {
 
     public static void getAttachment(CommandContext<ServerCommandSource> context) throws CommandSyntaxException
     {
+        var player = context.getSource().getPlayerOrThrow();
+        int mailId = context.getArgument("mail_id", Integer.class);
+        var mail = ClockInServer.DBM.getMailById(mailId);
+        if (mail == null || !mail.getReceiverUuid().equals(player.getUuidAsString())) {
+            player.sendMessage(Text.translatable("command.clockin.mail.invalid_mail_id").formatted(Formatting.RED), false);
 
+        } else {
+            String serializedAttachment = mail.getSerializedAttachment();
+            if (serializedAttachment == null || serializedAttachment.isBlank()) {
+                player.sendMessage(Text.translatable("command.clockin.mail.no_attachment").formatted(Formatting.RED), false);
+            }
+            else if (mail.getAttachmentFetched()) {
+                player.sendMessage(Text.translatable("command.clockin.mail.attachment_already_fetched").formatted(Formatting.RED), false);
+            } else {
+                List<ItemStack> itemList = FabricUtils.deserializeItemStackList(serializedAttachment);
+                if (FabricUtils.giveItemList(itemList, player, false) == 2) {
+                    player.sendMessage(Text.translatable("command.clockin.mail.no_slot_for_attachment").formatted(Formatting.RED));
+                } else {
+                    ClockInServer.DBM.setAttachmentFetched(mail);
+                    player.sendMessage(Text.translatable("command.clockin.mail.attachment_fetched").formatted(Formatting.GREEN), false);
+                }
+            }
+        }
+        // TODO
     }
 }

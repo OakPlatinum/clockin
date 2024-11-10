@@ -19,11 +19,14 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class FabricUtils {
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
 
     public static String serializeItemStackList(List<ItemStack> stackList) {
@@ -53,24 +56,59 @@ public class FabricUtils {
                 ItemStack itemStack = new ItemStack(itemEntry, Integer.parseInt(s[1]), Optional.ofNullable(StringNbtReader.parse(s[2])));
                 stackList.add(itemStack);
             } catch (CommandSyntaxException e) {
-                ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0]);
+                ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0], e);
             }
         }
         return stackList;
     }
-    public static void giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player) {
+
+    /**
+     * give item list to player
+     * @return 0:succeed<br/>
+     * 1:succeed, items partly converted to mail<br/>
+     * 2:failed, no item given<br/>
+     * 3:unknown exception
+     */
+    public static int giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
+        List<ItemStack> remainingStackList = new ArrayList<>();
+        List<Integer> candidateSlots = new ArrayList<>();
         for (ItemStack stack : stackList) {
-            giveItem(stack, player);
-        }
-    }
-    public static void giveItem(@NotNull ItemStack stack, PlayerEntity player) {
-        if (!stack.isEmpty()) {
-            if (player.getInventory().getEmptySlot() >= 1) {
-                player.giveItemStack(stack);
-            } else {
-                player.dropItem(stack, false);
+            int candidateSlot = getCandidateSlot(stack, player);
+            candidateSlots.add(candidateSlot);
+            if(candidateSlot == -1){
+                if (convertToMail) remainingStackList.add(stack);  // TODO: bug
+                else return 2;
             }
         }
+        for (int i = 0; i < stackList.size(); i++) {
+            insertStack(stackList.get(i), player, candidateSlots.get(i));
+        }
+        if (remainingStackList.isEmpty()) return 0;
+        sendRewardMail(player, remainingStackList, "Remaining Reward " + generateRandomString());
+        return 1;
+    }
+    private static String generateRandomString() {
+        int length = 8;
+        Random random = new Random();
+        StringBuilder stringBuilder = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            stringBuilder.append(CHARACTERS.charAt(index));
+        }
+        return stringBuilder.toString();
+    }
+    public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
+        ClockInServer.DBM.sendMail(ClockInServer.DBM.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
+    }
+    public static int getCandidateSlot(ItemStack stack, PlayerEntity player) {
+        int candidateSlot = player.getInventory().getOccupiedSlotWithRoomForStack(stack);  // TODO: this only tests for hot-bar slots
+        if (candidateSlot == -1) candidateSlot = player.getInventory().getEmptySlot();
+        return candidateSlot;
+    }
+    public static void insertStack(@NotNull ItemStack stack, PlayerEntity player, int slot) {
+        if (stack.isEmpty()) return;
+        player.getInventory().insertStack(slot, stack);
     }
     public static Text generateReadableReward(RewardInterface reward){
         MutableText text = Text.empty();
@@ -99,11 +137,11 @@ public class FabricUtils {
         return itemText;
     }
 
-    public static Text giveReward(PlayerEntity player, String rewardString){
+    public static Text giveReward(PlayerEntity player, String rewardString) {
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
         if(!reward.isNew()) {
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
+            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player, true);
             UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
@@ -136,7 +174,7 @@ public class FabricUtils {
     }
     public static void givePhysicalMoney(PlayerEntity player, int amount){
         ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemStackList, player);
+        FabricUtils.giveItemList(itemStackList, player, true);
     }
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
@@ -166,7 +204,7 @@ public class FabricUtils {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         MutableText text = Text.empty();
         for (MailInterface mail : mailList) {
-            Text senderNameText = (Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.ADMIN_UUID) ?
+            Text senderNameText = (Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ?
                     Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
                     Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
             MutableText mailText = Text.empty();
@@ -180,9 +218,10 @@ public class FabricUtils {
                 Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));
                 MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
                 if(mail.getAttachmentFetched()){
-                    rewardText = rewardText.formatted(Formatting.GRAY).formatted(Formatting.STRIKETHROUGH);
+                    rewardText = rewardText.formatted(Formatting.GRAY, Formatting.STRIKETHROUGH);
                 } else {
-                    rewardText = rewardText.formatted(Formatting.BLUE);
+                    rewardText = rewardText.formatted(Formatting.AQUA)
+                            .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail getAttachment " + mail.getId())));
                 }
                 mailText.append(Text.literal("  ").append(rewardText));
             }

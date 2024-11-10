@@ -12,7 +12,7 @@ import java.util.List;
 
 @Environment(EnvType.SERVER)
 public interface DatabaseManager {
-    String ADMIN_UUID = "00000000-0000-0000-0000-000000000000";
+    String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
     void createTables();
     void dropTables();
 
@@ -54,11 +54,13 @@ public interface DatabaseManager {
     RewardInterface createOrUpdateReward(RewardInterface reward);
 
     // Mail methods
-    void sendMail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched);
+    void sendMail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched);
 
     List<MailInterface> getMails(String receiverUuid, int page, int pageSize);
 
     void setAttachmentFetched(MailInterface mail);
 
     int getMailCount(String receiverUuid);
+
+    MailInterface getMailById(int id);
 }

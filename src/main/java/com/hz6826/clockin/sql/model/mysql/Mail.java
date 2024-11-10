@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 
 public class Mail implements MailInterface {
+    private final int id;
     private final String senderUuid;  // If admin, senderUuid is 00000000-0000-0000-0000-000000000000
     private final String receiverUuid;
     private final Timestamp sendTime;
@@ -15,7 +16,8 @@ public class Mail implements MailInterface {
     private final boolean isRead;
     private final boolean isAttachmentFetched;
 
-    public Mail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+    public Mail(int id, String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+        this.id = id;
         this.senderUuid = senderUuid;
         this.receiverUuid = receiverUuid;
         this.sendTime = sendTime;
@@ -23,6 +25,11 @@ public class Mail implements MailInterface {
         this.serializedAttachment = serializedAttachment;
         this.isRead = isRead;
         this.isAttachmentFetched = isAttachmentFetched;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 
     @Override
