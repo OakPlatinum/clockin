@@ -71,7 +71,7 @@ public class MailCommand {
                 player.sendMessage(Text.translatable("command.clockin.mail.attachment_already_fetched").formatted(Formatting.RED), false);
             } else {
                 List<ItemStack> itemList = FabricUtils.deserializeItemStackList(serializedAttachment);
-                if (FabricUtils.giveItemList(itemList, player, false) == 2) {
+                if (FabricUtils.giveItemList(itemList, player, false)) {
                     player.sendMessage(Text.translatable("command.clockin.mail.no_slot_for_attachment").formatted(Formatting.RED));
                 } else {
                     ClockInServer.DBM.setAttachmentFetched(mail);

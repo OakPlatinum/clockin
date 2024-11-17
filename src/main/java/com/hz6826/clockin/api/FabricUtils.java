@@ -62,30 +62,30 @@ public class FabricUtils {
         return stackList;
     }
 
-    /**
-     * give item list to player
-     * @return 0:succeed<br/>
-     * 1:succeed, items partly converted to mail<br/>
-     * 2:failed, no item given<br/>
-     * 3:unknown exception
-     */
-    public static int giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
+    public static boolean giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
         List<ItemStack> remainingStackList = new ArrayList<>();
         List<Integer> candidateSlots = new ArrayList<>();
         for (ItemStack stack : stackList) {
             int candidateSlot = getCandidateSlot(stack, player);
-            candidateSlots.add(candidateSlot);
-            if(candidateSlot == -1){
-                if (convertToMail) remainingStackList.add(stack);  // TODO: bug
-                else return 2;
+            if(!convertToMail && candidateSlot == -1){
+                return false;
             }
+            candidateSlots.add(candidateSlot);
         }
         for (int i = 0; i < stackList.size(); i++) {
-            insertStack(stackList.get(i), player, candidateSlots.get(i));
+            if(candidateSlots.get(i) == -1) {
+                remainingStackList.add(stackList.get(i));
+            } else {
+                insertStack(stackList.get(i), player, candidateSlots.get(i));
+            }
         }
-        if (remainingStackList.isEmpty()) return 0;
         sendRewardMail(player, remainingStackList, "Remaining Reward " + generateRandomString());
-        return 1;
+        if(!remainingStackList.isEmpty()) {
+            Text remainingItemsText = Text.translatable("command.clockin.reward.give.success.mail.receiver.item")
+                    .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, generateReadableRewardItemList(remainingStackList)))).formatted(Formatting.UNDERLINE);
+            player.sendMessage(Text.translatable("command.clockin.reward.give.success.mail.receiver", remainingItemsText).formatted(Formatting.GREEN));
+        }
+        return true;
     }
     private static String generateRandomString() {
         int length = 8;
@@ -121,7 +121,7 @@ public class FabricUtils {
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
     }
-    public static Text generateReadableRewardItemList(ArrayList<ItemStack> itemStackList){
+    public static Text generateReadableRewardItemList(List<ItemStack> itemStackList){
         MutableText itemText = Text.empty();
         for (ItemStack itemStack: itemStackList) {
             itemText.append(generateItemStackComponent(itemStack));
