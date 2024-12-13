@@ -8,6 +8,8 @@ import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
@@ -65,12 +67,14 @@ public class FabricUtils {
     public static boolean giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
         List<ItemStack> remainingStackList = new ArrayList<>();
         List<Integer> candidateSlots = new ArrayList<>();
+        PlayerInventory inv = player.getInventory();
         for (ItemStack stack : stackList) {
-            int candidateSlot = getCandidateSlot(stack, player);
+            int candidateSlot = getCandidateSlot(stack, inv);
             if(!convertToMail && candidateSlot == -1){
                 return false;
             }
             candidateSlots.add(candidateSlot);
+            inv.insertStack(candidateSlot, stack);
         }
         for (int i = 0; i < stackList.size(); i++) {
             if(candidateSlots.get(i) == -1) {
@@ -101,10 +105,19 @@ public class FabricUtils {
     public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
         ClockInServer.DBM.sendMail(ClockInServer.DBM.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
     }
-    public static int getCandidateSlot(ItemStack stack, PlayerEntity player) {
-        int candidateSlot = player.getInventory().getOccupiedSlotWithRoomForStack(stack);  // TODO: this only tests for hot-bar slots
-        if (candidateSlot == -1) candidateSlot = player.getInventory().getEmptySlot();
+    public static int getCandidateSlot(ItemStack stack, PlayerInventory inv) {
+        int candidateSlot = canItemBeAdded(stack, inv);  // FIXME: this only tests for hot-bar slots
+        if (candidateSlot == -1) candidateSlot = inv.getEmptySlot();
         return candidateSlot;
+    }
+    public static int canItemBeAdded(ItemStack stack, PlayerInventory inventory) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack existingStack = inventory.main.get(i);
+            if (inventory.canStackAddMore(existingStack, stack)) {
+                return i;
+            }
+        }
+        return -1;
     }
     public static void insertStack(@NotNull ItemStack stack, PlayerEntity player, int slot) {
         if (stack.isEmpty()) return;
