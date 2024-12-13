@@ -70,7 +70,7 @@ public class FabricUtils {
                 return false;
             }
             candidateSlots.add(candidateSlot);
-            inv.insertStack(candidateSlot, stack);
+            inv.insertStack(candidateSlot, stack.copy());
         }
         for (int i = 0; i < stackList.size(); i++) {
             if(candidateSlots.get(i) == -1) {
@@ -219,7 +219,7 @@ public class FabricUtils {
                     rewardText = rewardText.formatted(Formatting.GRAY, Formatting.STRIKETHROUGH);
                 } else {
                     rewardText = rewardText.formatted(Formatting.AQUA)
-                            .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail getAttachment " + mail.getId())));
+                            .fillStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail getAttachment " + mail.getId())));
                 }
                 mailText.append(Text.literal("  ").append(rewardText));
             }
