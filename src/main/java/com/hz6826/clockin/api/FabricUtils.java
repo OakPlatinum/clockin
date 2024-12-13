@@ -9,7 +9,6 @@ import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
@@ -28,9 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class FabricUtils {
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
-
     public static String serializeItemStackList(List<ItemStack> stackList) {
         StringBuilder stringBuilder = new StringBuilder();
         for (ItemStack stack : stackList) {
@@ -83,24 +79,13 @@ public class FabricUtils {
                 insertStack(stackList.get(i), player, candidateSlots.get(i));
             }
         }
-        sendRewardMail(player, remainingStackList, "Remaining Reward " + generateRandomString());
         if(!remainingStackList.isEmpty()) {
+            sendRewardMail(player, remainingStackList, Constants.REMAINING_REWARD_PLACEHOLDER);
             Text remainingItemsText = Text.translatable("command.clockin.reward.give.success.mail.receiver.item")
                     .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, generateReadableRewardItemList(remainingStackList)))).formatted(Formatting.UNDERLINE);
             player.sendMessage(Text.translatable("command.clockin.reward.give.success.mail.receiver", remainingItemsText).formatted(Formatting.GREEN));
         }
         return true;
-    }
-    private static String generateRandomString() {
-        int length = 8;
-        Random random = new Random();
-        StringBuilder stringBuilder = new StringBuilder(length);
-
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(CHARACTERS.length());
-            stringBuilder.append(CHARACTERS.charAt(index));
-        }
-        return stringBuilder.toString();
     }
     public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
         ClockInServer.DBM.sendMail(ClockInServer.DBM.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
@@ -129,7 +114,7 @@ public class FabricUtils {
             ArrayList<ItemStack> itemStackList = deserializeItemStackList(reward.getItemListSerialized());
             text.append(Text.translatable("command.clockin.reward.title.item", generateReadableRewardItemList(itemStackList))).append("\n");
         }
-        if(reward.getMoney() != 0) text.append(Text.translatable("command.clockin.reward.title.money", reward.getMoney(), CURRENCY_NAME)).append("\n");
+        if(reward.getMoney() != 0) text.append(Text.translatable("command.clockin.reward.title.money", reward.getMoney(), Constants.CURRENCY_NAME)).append("\n");
         if(reward.getRaffleTickets() != 0) text.append(Text.translatable("command.clockin.reward.title.raffle_ticket", reward.getRaffleTickets())).append("\n");
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
@@ -225,7 +210,7 @@ public class FabricUtils {
                     "command.clockin.mail.content.overview",
                     mail.getSendTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(dateTimeFormatter),
                     senderNameText,
-                    Text.literal(mail.getContent())
+                    Objects.equals(mail.getContent(), Constants.REMAINING_REWARD_PLACEHOLDER) && Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ? Text.translatable("command.clockin.mail.content.reward") : Text.literal(mail.getContent())
             ));
             if(mail.getSerializedAttachment() != null && !mail.getSerializedAttachment().isBlank()) {
                 Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));

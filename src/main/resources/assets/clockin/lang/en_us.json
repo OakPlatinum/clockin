@@ -75,6 +75,7 @@
   "command.clockin.mail.attachment_already_fetched": "该附件已被领取！",
   "command.clockin.mail.attachment_fetched": "成功领取附件！",
   "command.clockin.mail.no_slot_for_attachment": "你的背包空间不足，无法领取附件！",
+  "command.clockin.mail.content.reward": "剩余奖励",
 
   "command.clockin.system": "[系统]"
 }
