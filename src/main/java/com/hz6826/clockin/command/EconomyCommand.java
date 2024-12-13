@@ -58,8 +58,7 @@ public class EconomyCommand {
             context.getSource().sendError(Text.translatable("command.clockin.economy.not_enough_money", amount, CURRENCY_NAME));
             return;
         }
-        List<ItemStack> itemList = FabricUtils.parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemList, player);
+        FabricUtils.givePhysicalMoney(player, amount);
         user.subtractBalance(amount);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.withdraw", amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }

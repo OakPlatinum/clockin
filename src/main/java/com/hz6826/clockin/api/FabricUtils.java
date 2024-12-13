@@ -3,30 +3,30 @@ package com.hz6826.clockin.api;
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.server.ClockInServer;
+import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class FabricUtils {
-    public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
-
     public static String serializeItemStackList(List<ItemStack> stackList) {
         StringBuilder stringBuilder = new StringBuilder();
         for (ItemStack stack : stackList) {
@@ -55,49 +55,81 @@ public class FabricUtils {
                 itemStack.setNbt(StringNbtReader.parse(s[2]));
                 stackList.add(itemStack);
             } catch (CommandSyntaxException e) {
-                ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0]);
+                ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0], e);
             }
         }
         return stackList;
     }
-    public static void giveItemList(@NotNull List<ItemStack> stackList, ServerPlayerEntity player) {
+
+    public static boolean giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
+        List<ItemStack> remainingStackList = new ArrayList<>();
+        List<Integer> candidateSlots = new ArrayList<>();
+        PlayerInventory copiedInventory = new PlayerInventory(player);
+        PlayerInventory originalInventory = player.getInventory();
+        for (int i = 0; i < originalInventory.size(); i++) {
+            copiedInventory.setStack(i, originalInventory.getStack(i).copy());
+        }
         for (ItemStack stack : stackList) {
-            giveItem(stack, player);
+            int candidateSlot = getCandidateSlot(stack, copiedInventory);
+            if(!convertToMail && candidateSlot == -1){
+                return false;
+            }
+            candidateSlots.add(candidateSlot);
+            copiedInventory.insertStack(candidateSlot, stack.copy());
         }
-    }
-    public static void giveItem(@NotNull ItemStack stack, ServerPlayerEntity player) {
-        if (!stack.isEmpty()) {
-            player.giveItemStack(stack);
-        }
-    }
-    public static void giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player) {
-        for (ItemStack stack : stackList) {
-            giveItem(stack, player);
-        }
-    }
-    public static void giveItem(@NotNull ItemStack stack, PlayerEntity player) {
-        if (!stack.isEmpty()) {
-            if (player.getInventory().getEmptySlot() >= 1) {
-                player.giveItemStack(stack);
+        for (int i = 0; i < stackList.size(); i++) {
+            if(candidateSlots.get(i) == -1) {
+                remainingStackList.add(stackList.get(i));
             } else {
-                player.dropItem(stack, false);
+                insertStack(stackList.get(i), player, candidateSlots.get(i));
             }
         }
+        if(!remainingStackList.isEmpty()) {
+            sendRewardMail(player, remainingStackList, Constants.REMAINING_REWARD_PLACEHOLDER);
+            Text remainingItemsText = Text.translatable("command.clockin.reward.give.success.mail.receiver.item")
+                    .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, generateReadableRewardItemList(remainingStackList)))).formatted(Formatting.UNDERLINE);
+            player.sendMessage(Text.translatable("command.clockin.reward.give.success.mail.receiver", remainingItemsText).formatted(Formatting.GREEN));
+        }
+        return true;
+    }
+    public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
+        ClockInServer.DBM.sendMail(ClockInServer.DBM.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
+    }
+    public static int getCandidateSlot(ItemStack stack, PlayerInventory inv) {
+        int candidateSlot = canItemBeAdded(stack, inv);  // FIXME: this only tests for hot-bar slots
+        if (candidateSlot == -1) candidateSlot = inv.getEmptySlot();
+        return candidateSlot;
+    }
+    public static int canItemBeAdded(ItemStack stack, PlayerInventory inventory) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack existingStack = inventory.main.get(i);
+            if (inventory.canStackAddMore(existingStack, stack)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    public static void insertStack(@NotNull ItemStack stack, PlayerEntity player, int slot) {
+        if (stack.isEmpty()) return;
+        player.getInventory().insertStack(slot, stack);
     }
     public static Text generateReadableReward(RewardInterface reward){
         MutableText text = Text.empty();
         if(!reward.getItemListSerialized().isBlank()) {
             ArrayList<ItemStack> itemStackList = deserializeItemStackList(reward.getItemListSerialized());
-            MutableText itemText = Text.empty();
-            for (ItemStack itemStack: itemStackList) {
-                itemText.append(generateItemStackComponent(itemStack));
-            }
-            text.append(Text.translatable("command.clockin.reward.title.item", itemText)).append("\n");
+            text.append(Text.translatable("command.clockin.reward.title.item", generateReadableRewardItemList(itemStackList))).append("\n");
         }
-        if(reward.getMoney() != 0) text.append(Text.translatable("command.clockin.reward.title.money", reward.getMoney(), CURRENCY_NAME)).append("\n");
+        if(reward.getMoney() != 0) text.append(Text.translatable("command.clockin.reward.title.money", reward.getMoney(), Constants.CURRENCY_NAME)).append("\n");
         if(reward.getRaffleTickets() != 0) text.append(Text.translatable("command.clockin.reward.title.raffle_ticket", reward.getRaffleTickets())).append("\n");
         if(reward.getMakeupCards() != 0) text.append(Text.translatable("command.clockin.reward.title.makeup_card", reward.getMakeupCards())).append("\n");
         return text;
+    }
+    public static Text generateReadableRewardItemList(List<ItemStack> itemStackList){
+        MutableText itemText = Text.empty();
+        for (ItemStack itemStack: itemStackList) {
+            itemText.append(generateItemStackComponent(itemStack));
+        }
+        return itemText;
     }
     public static MutableText generateItemStackComponent(ItemStack itemStack) {
         MutableText itemText = Text.empty();
@@ -108,25 +140,11 @@ public class FabricUtils {
         return itemText;
     }
 
-    public static Text giveReward(ServerPlayerEntity player, String rewardString){
+    public static Text giveReward(PlayerEntity player, String rewardString) {
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
         if(!reward.isNew()) {
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
-            UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
-            user.addBalance(reward.getMoney());
-            user.addRaffleTicket(reward.getRaffleTickets());
-            user.addMakeupCard(reward.getMakeupCards());
-            rewardText = FabricUtils.generateReadableReward(reward);
-        }
-        return rewardText;
-    }
-
-    public static Text giveReward(PlayerEntity player, String rewardString){
-        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
-        Text rewardText = null;
-        if(!reward.isNew()) {
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player);
+            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player, true);
             UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
@@ -157,15 +175,10 @@ public class FabricUtils {
 
         return itemStackList; // Return the list of ItemStacks
     }
-    public static void givePhysicalMoney(ServerPlayerEntity player, int amount){
-        ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemStackList, player);
-    }
     public static void givePhysicalMoney(PlayerEntity player, int amount){
         ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemStackList, player);
+        FabricUtils.giveItemList(itemStackList, player, true);
     }
-
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
 
@@ -184,5 +197,59 @@ public class FabricUtils {
             amount += itemCount * denomination;
         }
         return amount;
+    }
+
+    public static void displayMailListTitle(PlayerEntity player){
+        player.sendMessage(Text.translatable("command.clockin.mail.title").formatted(Formatting.GOLD), false);
+    }
+
+    public static void displayMailList(PlayerEntity player, List<MailInterface> mailList){
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        MutableText text = Text.empty();
+        for (MailInterface mail : mailList) {
+            Text senderNameText = (Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ?
+                    Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
+                    Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
+            MutableText mailText = Text.empty();
+            mailText.append(Text.translatable(
+                    "command.clockin.mail.content.overview",
+                    mail.getSendTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(dateTimeFormatter),
+                    senderNameText,
+                    Objects.equals(mail.getContent(), Constants.REMAINING_REWARD_PLACEHOLDER) && Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ? Text.translatable("command.clockin.mail.content.reward") : Text.literal(mail.getContent())
+            ));
+            if(mail.getSerializedAttachment() != null && !mail.getSerializedAttachment().isBlank()) {
+                Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));
+                MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
+                if(mail.getAttachmentFetched()){
+                    rewardText = rewardText.formatted(Formatting.GRAY, Formatting.STRIKETHROUGH);
+                } else {
+                    rewardText = rewardText.formatted(Formatting.AQUA)
+                            .fillStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail getAttachment " + mail.getId())));
+                }
+                mailText.append(Text.literal("  ").append(rewardText));
+            }
+            text.append(mailText).append("\n");
+        }
+        player.sendMessage(text, false);
+    }
+
+    public static void displayMailListBottomBar(PlayerEntity player, int page, int pageCount){
+        MutableText text = Text.empty();
+        text.append(page > 1 ?
+                Text.translatable("command.clockin.mail.content.overview.bar.previous")
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail get " + (page - 1))))
+                        .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE):
+                Text.translatable("command.clockin.mail.content.overview.bar.previous")
+                        .formatted(Formatting.GRAY, Formatting.ITALIC));
+        text.append(Text.literal("  "));
+        text.append(Text.translatable("command.clockin.mail.content.overview.bar.page", page, pageCount).formatted(Formatting.AQUA, Formatting.BOLD));
+        text.append(Text.literal("  "));
+        text.append(page < pageCount ?
+                Text.translatable("command.clockin.mail.content.overview.bar.next")
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin mail get " + (page + 1))))
+                        .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE):
+                Text.translatable("command.clockin.mail.content.overview.bar.next")
+                        .formatted(Formatting.GRAY, Formatting.ITALIC));
+        player.sendMessage(text, false);
     }
 }

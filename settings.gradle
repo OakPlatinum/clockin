@@ -4,6 +4,12 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
+
+		// mirror
+		maven { url 'https://maven.aliyun.com/repository/public/' }
+		maven { url 'https://maven.aliyun.com/repository/central/' }
+
+		mavenLocal()
 		mavenCentral()
 		gradlePluginPortal()
 	}
