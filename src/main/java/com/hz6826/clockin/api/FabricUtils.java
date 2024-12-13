@@ -63,14 +63,18 @@ public class FabricUtils {
     public static boolean giveItemList(@NotNull List<ItemStack> stackList, PlayerEntity player, boolean convertToMail) {
         List<ItemStack> remainingStackList = new ArrayList<>();
         List<Integer> candidateSlots = new ArrayList<>();
-        PlayerInventory inv = player.getInventory();
+        PlayerInventory copiedInventory = new PlayerInventory(player);
+        PlayerInventory originalInventory = player.getInventory();
+        for (int i = 0; i < originalInventory.size(); i++) {
+            copiedInventory.setStack(i, originalInventory.getStack(i).copy());
+        }
         for (ItemStack stack : stackList) {
-            int candidateSlot = getCandidateSlot(stack, inv);
+            int candidateSlot = getCandidateSlot(stack, copiedInventory);
             if(!convertToMail && candidateSlot == -1){
                 return false;
             }
             candidateSlots.add(candidateSlot);
-            inv.insertStack(candidateSlot, stack.copy());
+            copiedInventory.insertStack(candidateSlot, stack.copy());
         }
         for (int i = 0; i < stackList.size(); i++) {
             if(candidateSlots.get(i) == -1) {
