@@ -251,4 +251,24 @@ public class FabricUtils {
                         .formatted(Formatting.GRAY, Formatting.ITALIC));
         player.sendMessage(text, false);
     }
+
+    public static Text generateCalendarDate(){
+        return null;
+    }
+
+    public static List<Text> generateCalendar(){
+        return null;
+        // TODO: Implement calendar generation
+    }
+
+    public static Text generateCalendarMonthTitle(int year, int month){
+        Text previousButton = Text.translatable("command.clockin.info.calendar.component.pervious_month")
+                .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin info " + (month == 1 ? year - 1 : year) + " " + (month == 1 ? 12 : month - 1))))
+                .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE);
+        Text nextButton = Text.translatable("command.clockin.info.calendar.component.next_month")
+                .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clockin info " + (month == 12 ? year + 1 : year) + " " + (month == 12 ? 1 : month + 1))))
+                .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE);
+        Text monthText = Text.literal(DateTimeFormatter.ofPattern("yyyy.MM").format(LocalDateTime.of(year, month, 1, 0, 0)));
+        return Text.translatable("command.clockin.info.calendar.layout.month", previousButton, monthText, nextButton);
+    }
 }

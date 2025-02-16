@@ -19,21 +19,6 @@ public class MailCommand {
         // TODO: Implement mail sending
     }
 
-    public static void getMails(CommandContext<ServerCommandSource> context) throws CommandSyntaxException
-    {
-        var player = context.getSource().getPlayerOrThrow();
-        int mailCount = ClockInServer.DBM.getMailCount(player.getUuidAsString());
-        if (mailCount == 0) {
-            player.sendMessage(Text.translatable("command.clockin.mail.no_mail").formatted(Formatting.GRAY), false);
-            return;
-        }
-        int pageCount = (int) Math.ceil((double) mailCount / PAGE_SIZE);
-        var mails = ClockInServer.DBM.getMails(player.getUuidAsString(), 1, PAGE_SIZE);
-        FabricUtils.displayMailListTitle(player);
-        FabricUtils.displayMailList(player, mails);
-        FabricUtils.displayMailListBottomBar(player, 1, pageCount);
-    }
-
     public static void getMailsWithPage(CommandContext<ServerCommandSource> context) throws CommandSyntaxException
     {
         var player = context.getSource().getPlayerOrThrow();
@@ -43,7 +28,14 @@ public class MailCommand {
             return;
         }
         int pageCount = (int) Math.ceil((double) mailCount / PAGE_SIZE);
-        int page = context.getArgument("page", Integer.class);
+
+        int page;
+        try {
+            page = context.getArgument("page", Integer.class);
+        } catch (IllegalArgumentException e) {
+            page = 1;
+        }
+
         if (page < 1 || page > pageCount) {
             player.sendMessage(Text.translatable("command.clockin.mail.invalid_page").formatted(Formatting.RED), false);
             return;

@@ -155,12 +155,12 @@ public class CommandManager {
                     // </editor-fold>
                     // <editor-fold desc="mail commands">
                     .then(literal("mail")
-                            .executes(context -> executeAsync(context, MailCommand::getMails))
+                            .executes(context -> executeAsync(context, MailCommand::getMailsWithPage))
                             .then(literal("send")
                                     .executes(context -> executeAsync(context, WIPCommand::WIP))
                             )
                             .then(literal("get")
-                                    .executes(context -> executeAsync(context, MailCommand::getMails))
+                                    .executes(context -> executeAsync(context, MailCommand::getMailsWithPage))
                                     .then(argument("page", IntegerArgumentType.integer())
                                             .executes(context -> executeAsync(context, MailCommand::getMailsWithPage))
                                     )

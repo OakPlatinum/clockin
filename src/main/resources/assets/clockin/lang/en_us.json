@@ -77,5 +77,13 @@
   "command.clockin.mail.no_slot_for_attachment": "你的背包空间不足，无法领取附件！",
   "command.clockin.mail.content.reward": "剩余奖励",
 
+  "command.clockin.info.headline": "==========Clock In 账户信息==========",
+  "command.clockin.info.calendar.layout.month": "| %s  %s  %s   |",
+  "command.clockin.info.calendar.component.pervious_month": "<-",
+  "command.clockin.info.calendar.component.next_month": "->",
+  "command.clockin.info.calendar.layout.header": "|S  M  T  W  T  F  S |",
+  "command.clockin.info.calendar.layout.day_row": "|%s %s %s %s %s %s %s|",
+  "command.clockin.info.calendar.layout.day_cell": "%02d",
+
   "command.clockin.system": "[系统]"
 }
