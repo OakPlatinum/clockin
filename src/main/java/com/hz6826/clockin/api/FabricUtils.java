@@ -1,7 +1,7 @@
 package com.hz6826.clockin.api;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.config.ClockInConfig;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
@@ -51,7 +51,8 @@ public class FabricUtils {
             Optional<RegistryEntry.Reference<Item>> itemEntryOptional = Registries.ITEM.getEntry(itemKey);
             RegistryEntry<Item> itemEntry = itemEntryOptional.orElseThrow(() -> new IllegalArgumentException("Invalid item ID: " + s[0]));
             try {
-                ItemStack itemStack = new ItemStack(itemEntry, Integer.parseInt(s[1]), Optional.ofNullable(StringNbtReader.parse(s[2])));
+                ItemStack itemStack = new ItemStack(itemEntry, Integer.parseInt(s[1]));
+                itemStack.setNbt(StringNbtReader.parse(s[2]));
                 stackList.add(itemStack);
             } catch (CommandSyntaxException e) {
                 ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0], e);
@@ -156,7 +157,7 @@ public class FabricUtils {
     public static @NotNull ArrayList<ItemStack> parseAmountToPhysicalMoney(int amount){
         ArrayList<ItemStack> itemStackList = new ArrayList<>();
         // Sort the currency items by key (denomination) in descending order
-        List<Map.Entry<Integer, String>> sortedCurrencyItems = BasicConfig.getConfig().getPhysicalCurrencyItemIdsSorted();
+        List<Map.Entry<Integer, String>> sortedCurrencyItems = ClockInConfig.getConfig().getPhysicalCurrencyItemIdsSorted();
 
         // Iterate over the sorted currency items
         for (Map.Entry<Integer, String> entry : sortedCurrencyItems) {
@@ -181,7 +182,7 @@ public class FabricUtils {
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
 
-        Map<String, Integer> currencyMap = BasicConfig.getConfig().getPhysicalCurrencyItemIds();
+        Map<String, Integer> currencyMap = ClockInConfig.getConfig().getPhysicalCurrencyItemIds();
 
         for (ItemStack itemStack : itemStackList) {
             int itemCount = itemStack.getCount();

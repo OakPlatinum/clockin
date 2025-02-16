@@ -1,30 +1,19 @@
 package com.hz6826.clockin.config;
 
-import me.lortseam.completeconfig.api.ConfigEntry;
-import me.lortseam.completeconfig.data.Config;
-import me.lortseam.completeconfig.data.ConfigOptions;
-
 import java.util.*;
 
-public class BasicConfig extends Config {
-    public BasicConfig() {
-        // Replace "mymod" with your mod's ID
-        super(ConfigOptions.mod("clockin"));
-    }
-
-    @ConfigEntry(comment = "Type of database to use (MySQL or SQLite(W.I.P.))")
+public class BasicConfig {
     private String databaseType = "mysql";
 
     public String getDatabaseType() { return databaseType.toLowerCase();}
     public void setDatabaseType(String databaseType) { this.databaseType = databaseType.toLowerCase();}
 
-    @ConfigEntry(comment = "MySQL database credentials (if using MySQL)")
     private String mysqlHost = "localhost";
-    @ConfigEntry private int mysqlPort = 3306;
-    @ConfigEntry private String mysqlUsername = "root";
-    @ConfigEntry private String mysqlPassword = "password";
-    @ConfigEntry private String mysqlDatabase = "clockin";
-    @ConfigEntry private String mysqlUseSSL = "false";
+    private int mysqlPort = 3306;
+    private String mysqlUsername = "root";
+    private String mysqlPassword = "password";
+    private String mysqlDatabase = "clockin";
+    private String mysqlUseSSL = "false";
     public String getMysqlHost() { return mysqlHost; }
     public void setMysqlHost(String mysqlHost) { this.mysqlHost = mysqlHost;}
     public int getMysqlPort() { return mysqlPort; }
@@ -38,35 +27,31 @@ public class BasicConfig extends Config {
     public boolean getMysqlUseSSL() { return Boolean.parseBoolean(mysqlUseSSL); }
     public void setMysqlUseSSL(boolean mysqlUseSSL) { this.mysqlUseSSL = String.valueOf(mysqlUseSSL); }
 
-    @ConfigEntry(comment = "SQLite database file path (if using SQLite)")
     private String sqliteFilePath = "clockin.db";
 
     public String getSqliteFilePath() { return sqliteFilePath; }
     public void setSqliteFilePath(String sqliteFilePath) { this.sqliteFilePath = sqliteFilePath; }
 
-    @ConfigEntry(comment = "Currency name")
     private String currencyName = "bits";
 
     public String getCurrencyName() { return currencyName; }
     public void setCurrencyName(String currencyName) { this.currencyName = currencyName; }
 
-    @ConfigEntry(comment = "Enable/Disable physical currency (deposits/withdrawals)")
     private String enablePhysicalCurrency = "true";
 
     public boolean getEnablePhysicalCurrency() { return Boolean.parseBoolean(enablePhysicalCurrency); }
     public void setEnablePhysicalCurrency(boolean enablePhysicalCurrency) { this.enablePhysicalCurrency = String.valueOf(enablePhysicalCurrency); }
 
-    @ConfigEntry(comment = "Custom physical currency item id (if enabled), set empty to disable this coin")
     private String physicalCurrencyItemId_1 = "clockin:coin_1";
-    @ConfigEntry private String physicalCurrencyItemId_5 = "clockin:coin_5";
-    @ConfigEntry private String physicalCurrencyItemId_10 = "clockin:coin_10";
-    @ConfigEntry private String physicalCurrencyItemId_20 = "clockin:coin_20";
-    @ConfigEntry private String physicalCurrencyItemId_50 = "clockin:coin_50";
-    @ConfigEntry private String physicalCurrencyItemId_100 = "clockin:coin_100";
-    @ConfigEntry private String physicalCurrencyItemId_500 = "clockin:coin_500";
-    @ConfigEntry private String physicalCurrencyItemId_1000 = "clockin:coin_1000";
-    @ConfigEntry private String physicalCurrencyItemId_5000 = "clockin:coin_5000";
-    @ConfigEntry private String physicalCurrencyItemId_10000 = "clockin:coin_10000";
+    private String physicalCurrencyItemId_5 = "clockin:coin_5";
+    private String physicalCurrencyItemId_10 = "clockin:coin_10";
+    private String physicalCurrencyItemId_20 = "clockin:coin_20";
+    private String physicalCurrencyItemId_50 = "clockin:coin_50";
+    private String physicalCurrencyItemId_100 = "clockin:coin_100";
+    private String physicalCurrencyItemId_500 = "clockin:coin_500";
+    private String physicalCurrencyItemId_1000 = "clockin:coin_1000";
+    private String physicalCurrencyItemId_5000 = "clockin:coin_5000";
+    private String physicalCurrencyItemId_10000 = "clockin:coin_10000";
 
     public String getPhysicalCurrencyItemId_1() { return physicalCurrencyItemId_1; }
     public void setPhysicalCurrencyItemId_1(String physicalCurrencyItemId_1) { this.physicalCurrencyItemId_1 = physicalCurrencyItemId_1; }
@@ -147,8 +132,8 @@ public class BasicConfig extends Config {
 
 
 
-    static BasicConfig config = new BasicConfig();
-    public static BasicConfig getConfig() {
+    static ClockInConfig config = new ClockInConfig();
+    public static ClockInConfig getConfig() {
         return config;
     }
 }

@@ -5,7 +5,6 @@ import java.sql.Date;
 import java.util.*;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
@@ -25,18 +24,18 @@ public class MySQLDatabaseManager implements DatabaseManager{
     private final String password;
 
     public MySQLDatabaseManager() {
-        String host = BasicConfig.getConfig().getMysqlHost();
-        int port = BasicConfig.getConfig().getMysqlPort();
-        String database = BasicConfig.getConfig().getMysqlDatabase();
-        boolean useSSL = BasicConfig.getConfig().getMysqlUseSSL();
+        String host = ClockIn.CONFIG.mysqlHost();
+        int port = ClockIn.CONFIG.mysqlPort();
+        String database = ClockIn.CONFIG.mysqlDatabase();
+        boolean useSSL = ClockIn.CONFIG.mysqlUseSSL();
         url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
-        username = BasicConfig.getConfig().getMysqlUsername();
-        password = BasicConfig.getConfig().getMysqlPassword();
+        username = ClockIn.CONFIG.mysqlUsername();
+        password = ClockIn.CONFIG.mysqlPassword();
         try {
             Connection conn = getConn();
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            ClockIn.LOGGER.error("Couldn't connect to SQL server! {}", e.getMessage());
         }
     }
 
@@ -63,7 +62,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             stmt.executeUpdate(sql);
             stmt.close();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to execute update: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to execute update: {}", e.getMessage(), e);
         }
     }
 
@@ -72,7 +71,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
         try {
             return preparedStatement.executeQuery();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to execute query: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to execute query: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -87,9 +86,9 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 preparedStatement.setString(1, uuid);
                 preparedStatement.setString(2, playerName);
                 preparedStatement.executeUpdate();
-                ClockIn.LOGGER.info("Created user " + playerName + " [" + uuid + "]");
+                ClockIn.LOGGER.info("Created user {} [{}]", playerName, uuid);
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to create user: " + e.getMessage());
+                ClockIn.LOGGER.error("Failed to create user: {}", e.getMessage());
             }
         } else if (!Objects.equals(user.getPlayerName(), playerName)) {
             user.setPlayerName(playerName);
@@ -108,7 +107,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return null;
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get user by UUID: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get user by UUID: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -124,7 +123,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return null;
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get user by name: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get user by name: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -138,7 +137,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setString(4, user.getUuid());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to update user: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to update user: {}", e.getMessage(), e);
         }
     }
 
@@ -152,7 +151,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             }
             return users;
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get users sorted by balance: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get users sorted by balance: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -167,7 +166,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             }
             return users;
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get users sorted by raffle ticket: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get users sorted by raffle ticket: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -192,7 +191,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             }
             return null;
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get daily clock in record: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get daily clock in record: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -204,7 +203,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setString(2, record.uuid());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to delete daily clock in record: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to delete daily clock in record: {}", e.getMessage(), e);
         }
     }
 
@@ -216,7 +215,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             preparedStatement.setTime(3, time);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to daily clock in: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to daily clock in: {}", e.getMessage(), e);
         }
     }
 
@@ -231,7 +230,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             }
             return records;
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get daily clock in records: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get daily clock in records: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -245,7 +244,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: {}", e.getMessage(), e);
         }
         return 0;
     }
@@ -260,7 +259,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: {}", e.getMessage(), e);
         }
         return 0;
     }
@@ -276,7 +275,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get player daily clock in count: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get player daily clock in count: {}", e.getMessage(), e);
         }
         return 0;
     }
@@ -287,7 +286,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
             // conn.setAutoCommit(true);
             return DriverManager.getConnection(url, username, password);
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get connection: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get connection: {}", e.getMessage(), e);
             throw new SQLException("Failed to get connection.");
         }
     }
@@ -304,7 +303,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 return new Reward(key, "", "", 0, 0, 0);
             }
         } catch (SQLException e) {
-            ClockIn.LOGGER.error("Failed to get reward: " + e.getMessage(), e);
+            ClockIn.LOGGER.error("Failed to get reward: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -321,7 +320,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 preparedStatement.setInt(6, reward.getMakeupCards());
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to create reward: " + e.getMessage(), e);
+                ClockIn.LOGGER.error("Failed to create reward: {}", e.getMessage(), e);
             }
         } else {
             try (PreparedStatement preparedStatement = getConn().prepareStatement("UPDATE rewards SET translatable_key =?, item_list_serialized =?, money =?, raffle_tickets =?, makeup_cards =? WHERE `key` = ?")) {
@@ -333,7 +332,7 @@ public class MySQLDatabaseManager implements DatabaseManager{
                 preparedStatement.setString(6, reward.getKey());
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                ClockIn.LOGGER.error("Failed to update reward: " + e.getMessage(), e);
+                ClockIn.LOGGER.error("Failed to update reward: {}", e.getMessage(), e);
             }
         }
         return getRewardOrNew(reward.getKey());

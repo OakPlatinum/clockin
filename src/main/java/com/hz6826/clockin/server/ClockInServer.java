@@ -2,7 +2,8 @@ package com.hz6826.clockin.server;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.command.CommandManager;
-import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.config.ClockInConfig;
+import com.hz6826.clockin.init.EventRegister;
 import com.hz6826.clockin.sql.DatabaseManager;
 import com.hz6826.clockin.sql.MySQLDatabaseManager;
 import com.hz6826.clockin.sql.SQLiteDatabaseManager;
@@ -27,20 +28,24 @@ public class ClockInServer implements DedicatedServerModInitializer {
 		LOGGER.info("Clock In is loading!");
 
 		// Initialize config, command manager, and database manager
-		BasicConfig config = BasicConfig.getConfig();
-		new CommandManager();
-		if (config.getDatabaseType().equals("mysql")) {
+
+		CommandManager.bootstrap();
+
+		if (ClockIn.CONFIG.databaseType().equals("mysql")) {
 			DBM = new MySQLDatabaseManager();
-		} else if (config.getDatabaseType().equals("sqlite")) {
+		} else if (ClockIn.CONFIG.databaseType().equals("sqlite")) {
 			DBM = new SQLiteDatabaseManager();
 		}
 		try {
 			DBM.getConn();
 		} catch (SQLException e) {
-			LOGGER.error("Couldn't connect to SQL server!" + e.getMessage());
+            LOGGER.error("Couldn't connect to SQL server! {}", e.getMessage());
 			return;
 		}
 		DBM.createTables();
+
+		// Register events
+		EventRegister.bootstrap();
 
 	}
 }

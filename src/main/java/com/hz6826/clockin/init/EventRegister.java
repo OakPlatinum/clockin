@@ -1,37 +1,26 @@
-package com.hz6826.clockin.mixin;
+package com.hz6826.clockin.init;
 
+import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.api.FabricUtils;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import com.hz6826.clockin.ClockIn;
 
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 
-@Mixin(PlayerManager.class)
-public abstract class MixinPlayerManager{
-    @Unique private static final Formatting CLOCKIN_INIT_MESSAGE_COLOR = Formatting.AQUA;
-
-
-    @Inject(method = "onPlayerConnect", at = @At("TAIL"))
-    public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
-        CompletableFuture.runAsync(() -> {
+public class EventRegister {
+    public static void bootstrap() {
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> CompletableFuture.runAsync(() -> {
+            Formatting CLOCKIN_INIT_MESSAGE_COLOR = Formatting.AQUA;  // TODO: Make this configurable
+            ServerPlayerEntity player = handler.getPlayer();
             if (ClockInServer.DBM != null) {
                 try {
                     ClockInServer.DBM.getConn();
@@ -59,6 +48,6 @@ public abstract class MixinPlayerManager{
             } else {
                 ClockIn.LOGGER.error("Failed to attach Clock In user.");
             }
-        });
+        }));
     }
 }

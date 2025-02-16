@@ -1,7 +1,7 @@
 package com.hz6826.clockin.command;
 
+import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.api.FabricUtils;
-import com.hz6826.clockin.config.BasicConfig;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
@@ -20,7 +20,7 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 
 public class AdminCommand {
-    public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
+    public static String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
     public static void getReward(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);

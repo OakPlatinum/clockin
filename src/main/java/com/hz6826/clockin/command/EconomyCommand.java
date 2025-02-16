@@ -1,7 +1,7 @@
 package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.api.FabricUtils;
-import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.config.ClockInConfig;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EconomyCommand {
-    public static String CURRENCY_NAME = BasicConfig.getConfig().getCurrencyName();
+    public static String CURRENCY_NAME = ClockInConfig.getConfig().getCurrencyName();
 
     public static void deposit(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ArrayList<ItemStack> itemList = new ArrayList<>();
@@ -29,7 +29,7 @@ public class EconomyCommand {
         for (int i = 0; i < 36; i++) {  // from inventory
             ItemStack itemStack = inventory.getStack(i);
             if (!itemStack.isEmpty()
-                    && BasicConfig.getConfig().getPhysicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
+                    && ClockInConfig.getConfig().getPhysicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
                 itemList.add(itemStack);
                 inventory.removeStack(i);
             }

@@ -1,7 +1,7 @@
 package com.hz6826.clockin.sql;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.config.BasicConfig;
+import com.hz6826.clockin.config.ClockInConfig;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
@@ -23,7 +23,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
     private final String url;
 
     public SQLiteDatabaseManager() {
-        String filePathString = BasicConfig.getConfig().getSqliteFilePath();
+        String filePathString = ClockInConfig.getConfig().getSqliteFilePath();
         url = "jdbc:sqlite:" + filePathString.replace("\\", "/");
         try {
             Connection conn = getConn();
