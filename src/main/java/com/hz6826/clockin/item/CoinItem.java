@@ -1,6 +1,6 @@
 package com.hz6826.clockin.item;
 
-import com.hz6826.clockin.config.ClockInConfig;
+import com.hz6826.clockin.ClockIn;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
@@ -15,11 +15,11 @@ public class CoinItem extends Item {
 
     @Override
     public Text getName() {
-        return Text.translatable("item.clockin.coin", denomination, ClockInConfig.getConfig().getCurrencyName());
+        return Text.translatable("item.clockin.coin", denomination, ClockIn.CONFIG.currencyName());
     }
 
     @Override
     public Text getName(ItemStack stack) {
-        return Text.translatable("item.clockin.coin", denomination, ClockInConfig.getConfig().getCurrencyName());
+        return Text.translatable("item.clockin.coin", denomination, ClockIn.CONFIG.currencyName());
     }
 }

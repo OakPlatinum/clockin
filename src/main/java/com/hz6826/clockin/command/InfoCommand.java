@@ -1,11 +1,10 @@
 package com.hz6826.clockin.command;
 
+import com.hz6826.clockin.api.Util;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
-
-import com.hz6826.clockin.api.FabricUtils;
 
 import java.time.LocalDate;
 
@@ -22,6 +21,6 @@ public class InfoCommand {
             year = now.getYear();
             month = now.getMonthValue();
         }
-        player.sendMessage(FabricUtils.generateCalendarMonthTitle(year, month));
+        player.sendMessage(Util.generateCalendarMonthTitle(year, month));
     }
 }

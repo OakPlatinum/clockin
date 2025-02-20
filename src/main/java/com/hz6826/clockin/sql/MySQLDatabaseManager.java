@@ -338,55 +338,6 @@ public class MySQLDatabaseManager implements DatabaseManager{
         return getRewardOrNew(reward.getKey());
     }
 
-    // package com.hz6826.clockin.sql.model.mysql;
-    //
-    //import com.hz6826.clockin.sql.model.interfaces.MailInterface;
-    //
-    //import java.util.Date;
-    //
-    //public class Mail implements MailInterface {
-    //    private final String senderUuid;  // If admin, senderUuid is 00000000-0000-0000-0000-000000000000
-    //    private final String receiverUuid;
-    //    private final Date sendTime;
-    //    private final String content;
-    //    private final String serializedAttachment;
-    //    private final boolean isAttachmentFetched;
-    //
-    //    public Mail(String senderUuid, String receiverUuid, Date sendTime, String content, String serializedAttachment, boolean isAttachmentFetched) {
-    //        this.senderUuid = senderUuid;
-    //        this.receiverUuid = receiverUuid;
-    //        this.sendTime = sendTime;
-    //        this.content = content;
-    //        this.serializedAttachment = serializedAttachment;
-    //        this.isAttachmentFetched = isAttachmentFetched;
-    //    }
-    //
-    //    public String getSenderUuid() {
-    //        return senderUuid;
-    //    }
-    //
-    //    public String getReceiverUuid() {
-    //        return receiverUuid;
-    //    }
-    //
-    //    public Date getSendTime() {
-    //        return sendTime;
-    //    }
-    //
-    //    public String getContent() {
-    //        return content;
-    //    }
-    //
-    //    public String getSerializedAttachment() {
-    //        return serializedAttachment;
-    //    }
-    //
-    //    public boolean getAttachmentFetched() {
-    //        return isAttachmentFetched;
-    //    }
-    //}
-
-    // Mail methods
     @Override
     public void sendMail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
         try (PreparedStatement preparedStatement = getConn().prepareStatement("INSERT INTO mails (sender_uuid, receiver_uuid, send_time, content, serialized_attachment, is_read, is_attachment_fetched) VALUES (?,?,?,?,?,?,?)")) {

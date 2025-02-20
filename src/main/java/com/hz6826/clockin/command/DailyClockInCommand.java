@@ -1,6 +1,6 @@
 package com.hz6826.clockin.command;
 
-import com.hz6826.clockin.api.FabricUtils;
+import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
 import com.mojang.brigadier.context.CommandContext;
@@ -29,7 +29,7 @@ public class DailyClockInCommand {
             } else {
                 // Give Daily Reward
                 DailyClockInRecordInterface finalDailyClockInRecord = dailyClockInRecord;
-                Text rewardText = FabricUtils.giveReward(context.getSource().getPlayerOrThrow(), "daily_reward");
+                Text rewardText = Util.giveReward(context.getSource().getPlayerOrThrow(), "daily_reward");
                 if(rewardText == null) {
                     rewardText = Text.translatable("command.clockin.reward.null");
                 }
@@ -39,19 +39,19 @@ public class DailyClockInCommand {
 
                 // Give Cumulate Reward
                 int cumulateCount = ClockInServer.DBM.getPlayerDailyClockInCount(context.getSource().getPlayerOrThrow().getUuidAsString());
-                Text cumulateRewardText = FabricUtils.giveReward(context.getSource().getPlayerOrThrow(), "cumulate_reward_" + cumulateCount);
+                Text cumulateRewardText = Util.giveReward(context.getSource().getPlayerOrThrow(), "cumulate_reward_" + cumulateCount);
                 if(cumulateRewardText != null) {
                     context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.cumulate.total.reward", Text.literal(String.valueOf(cumulateCount)).formatted(Formatting.GOLD)), false);
                     context.getSource().sendFeedback(() -> cumulateRewardText, false);
                 }
                 // Give Monthly Cumulate Reward
                 int monthlyCumulateCount = ClockInServer.DBM.getPlayerDailyClockInCount(context.getSource().getPlayerOrThrow().getUuidAsString(), LocalDate.now().getMonthValue());
-                Text monthlyCumulateRewardText = FabricUtils.giveReward(context.getSource().getPlayerOrThrow(), "cumulate_reward_monthly_" + monthlyCumulateCount);
+                Text monthlyCumulateRewardText = Util.giveReward(context.getSource().getPlayerOrThrow(), "cumulate_reward_monthly_" + monthlyCumulateCount);
                 if(monthlyCumulateRewardText != null) {
                     context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.cumulate.monthly.reward", Text.literal(String.valueOf(monthlyCumulateCount)).formatted(Formatting.GOLD)), false);
                     context.getSource().sendFeedback(() -> monthlyCumulateRewardText, false);
                 }
-                Text specificDateRewardText = FabricUtils.giveReward(context.getSource().getPlayerOrThrow(), "daily_reward_" + date.toString().replace("-", ""));
+                Text specificDateRewardText = Util.giveReward(context.getSource().getPlayerOrThrow(), "daily_reward_" + date.toString().replace("-", ""));
                 if(specificDateRewardText != null) {
                     context.getSource().sendFeedback(() -> Text.translatable("command.clockin.dailyclockin.success.specific.date.reward", Text.literal(date.toString().replace("-", "")).formatted(Formatting.GOLD)), false);
                     context.getSource().sendFeedback(() -> specificDateRewardText, false);

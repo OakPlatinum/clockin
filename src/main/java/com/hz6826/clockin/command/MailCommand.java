@@ -1,6 +1,6 @@
 package com.hz6826.clockin.command;
 
-import com.hz6826.clockin.api.FabricUtils;
+import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -41,9 +41,9 @@ public class MailCommand {
             return;
         }
         var mails = ClockInServer.DBM.getMails(player.getUuidAsString(), page, PAGE_SIZE);
-        FabricUtils.displayMailListTitle(player);
-        FabricUtils.displayMailList(player, mails);
-        FabricUtils.displayMailListBottomBar(player, page, pageCount);
+        Util.displayMailListTitle(player);
+        Util.displayMailList(player, mails);
+        Util.displayMailListBottomBar(player, page, pageCount);
     }
 
     public static void getAttachment(CommandContext<ServerCommandSource> context) throws CommandSyntaxException
@@ -62,8 +62,8 @@ public class MailCommand {
             else if (mail.getAttachmentFetched()) {
                 player.sendMessage(Text.translatable("command.clockin.mail.attachment_already_fetched").formatted(Formatting.RED), false);
             } else {
-                List<ItemStack> itemList = FabricUtils.deserializeItemStackList(serializedAttachment);
-                if (player.getInventory().getEmptySlot() == -1 || !FabricUtils.giveItemList(itemList, player, false)) {
+                List<ItemStack> itemList = Util.deserializeItemStackList(serializedAttachment);
+                if (player.getInventory().getEmptySlot() == -1 || !Util.giveItemList(itemList, player, false)) {
                     player.sendMessage(Text.translatable("command.clockin.mail.no_slot_for_attachment").formatted(Formatting.RED));
                 } else {
                     ClockInServer.DBM.setAttachmentFetched(mail);

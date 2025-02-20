@@ -1,8 +1,9 @@
 package com.hz6826.clockin.api;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.config.ClockInConfig;
+import com.hz6826.clockin.config.PhysicalCurrencyUtil;
 import com.hz6826.clockin.server.ClockInServer;
+import com.hz6826.clockin.sql.DatabaseManager;
 import com.hz6826.clockin.sql.model.interfaces.MailInterface;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
@@ -26,7 +27,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class FabricUtils {
+public class Util {
     public static String serializeItemStackList(List<ItemStack> stackList) {
         StringBuilder stringBuilder = new StringBuilder();
         for (ItemStack stack : stackList) {
@@ -93,7 +94,7 @@ public class FabricUtils {
         return true;
     }
     public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
-        ClockInServer.DBM.sendMail(ClockInServer.DBM.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
+        ClockInServer.DBM.sendMail(DatabaseManager.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
     }
     public static int getCandidateSlot(ItemStack stack, PlayerInventory inv) {
         int candidateSlot = canItemBeAdded(stack, inv);  // FIXME: this only tests for hot-bar slots
@@ -144,12 +145,12 @@ public class FabricUtils {
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
         Text rewardText = null;
         if(!reward.isNew()) {
-            FabricUtils.giveItemList(FabricUtils.deserializeItemStackList(reward.getItemListSerialized()), player, true);
+            Util.giveItemList(Util.deserializeItemStackList(reward.getItemListSerialized()), player, true);
             UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
             user.addMakeupCard(reward.getMakeupCards());
-            rewardText = FabricUtils.generateReadableReward(reward);
+            rewardText = Util.generateReadableReward(reward);
         }
         return rewardText;
     }
@@ -157,7 +158,7 @@ public class FabricUtils {
     public static @NotNull ArrayList<ItemStack> parseAmountToPhysicalMoney(int amount){
         ArrayList<ItemStack> itemStackList = new ArrayList<>();
         // Sort the currency items by key (denomination) in descending order
-        List<Map.Entry<Integer, String>> sortedCurrencyItems = ClockInConfig.getConfig().getPhysicalCurrencyItemIdsSorted();
+        List<Map.Entry<Integer, String>> sortedCurrencyItems = PhysicalCurrencyUtil.getPhysicalCurrencyItemIdsSorted();  // TODO
 
         // Iterate over the sorted currency items
         for (Map.Entry<Integer, String> entry : sortedCurrencyItems) {
@@ -177,12 +178,13 @@ public class FabricUtils {
     }
     public static void givePhysicalMoney(PlayerEntity player, int amount){
         ArrayList<ItemStack> itemStackList = parseAmountToPhysicalMoney(amount);
-        FabricUtils.giveItemList(itemStackList, player, true);
+        Util.giveItemList(itemStackList, player, true);
     }
+
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
 
-        Map<String, Integer> currencyMap = ClockInConfig.getConfig().getPhysicalCurrencyItemIds();
+        Map<String, Integer> currencyMap = ClockIn.CONFIG.physicalCurrencyItemIds();
 
         for (ItemStack itemStack : itemStackList) {
             int itemCount = itemStack.getCount();
@@ -207,7 +209,7 @@ public class FabricUtils {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         MutableText text = Text.empty();
         for (MailInterface mail : mailList) {
-            Text senderNameText = (Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ?
+            Text senderNameText = (Objects.equals(mail.getSenderUuid(), DatabaseManager.SERVER_UUID) ?
                     Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
                     Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
             MutableText mailText = Text.empty();
@@ -215,10 +217,10 @@ public class FabricUtils {
                     "command.clockin.mail.content.overview",
                     mail.getSendTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(dateTimeFormatter),
                     senderNameText,
-                    Objects.equals(mail.getContent(), Constants.REMAINING_REWARD_PLACEHOLDER) && Objects.equals(mail.getSenderUuid(), ClockInServer.DBM.SERVER_UUID) ? Text.translatable("command.clockin.mail.content.reward") : Text.literal(mail.getContent())
+                    Objects.equals(mail.getContent(), Constants.REMAINING_REWARD_PLACEHOLDER) && Objects.equals(mail.getSenderUuid(), DatabaseManager.SERVER_UUID) ? Text.translatable("command.clockin.mail.content.reward") : Text.literal(mail.getContent())
             ));
             if(mail.getSerializedAttachment() != null && !mail.getSerializedAttachment().isBlank()) {
-                Text rewardTextTooltip = FabricUtils.generateReadableRewardItemList(FabricUtils.deserializeItemStackList(mail.getSerializedAttachment()));
+                Text rewardTextTooltip = Util.generateReadableRewardItemList(Util.deserializeItemStackList(mail.getSerializedAttachment()));
                 MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
                 if(mail.getAttachmentFetched()){
                     rewardText = rewardText.formatted(Formatting.GRAY, Formatting.STRIKETHROUGH);
@@ -271,5 +273,14 @@ public class FabricUtils {
                 .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE);
         Text monthText = Text.literal(DateTimeFormatter.ofPattern("yyyy.MM").format(LocalDateTime.of(year, month, 1, 0, 0)));
         return Text.translatable("command.clockin.info.calendar.layout.month", previousButton, monthText, nextButton);
+    }
+
+    public static <K, V> K findKeyByValue(Map<K, V> map, V value) {
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (value.equals(entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null; // 如果没有找到对应的键，返回null
     }
 }

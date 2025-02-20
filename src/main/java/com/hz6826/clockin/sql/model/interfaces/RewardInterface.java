@@ -1,9 +1,5 @@
 package com.hz6826.clockin.sql.model.interfaces;
 
-import net.minecraft.item.ItemStack;
-
-import java.util.List;
-
 public interface RewardInterface {
     String getKey();
 

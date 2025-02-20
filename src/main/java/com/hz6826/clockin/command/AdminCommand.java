@@ -1,7 +1,7 @@
 package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.api.FabricUtils;
+import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
@@ -20,14 +20,14 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 
 public class AdminCommand {
-    public static String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
+    public static final String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
     public static void getReward(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
         if (reward.isNew()) {
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key).formatted(Formatting.RED), false);
         } else {
-            Text rewardText = FabricUtils.generateReadableReward(reward);
+            Text rewardText = Util.generateReadableReward(reward);
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.success", key).formatted(Formatting.GREEN), false);
             context.getSource().sendFeedback(() -> rewardText, false);
         }
@@ -43,7 +43,7 @@ public class AdminCommand {
             }
         }
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
-        reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
+        reward.setItemListSerialized(Util.serializeItemStackList(itemList));
         ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
@@ -58,7 +58,7 @@ public class AdminCommand {
             }
         }
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
-        reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
+        reward.setItemListSerialized(Util.serializeItemStackList(itemList));
         ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
@@ -71,7 +71,7 @@ public class AdminCommand {
             itemList.add(itemStack);
         }
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);
-        reward.setItemListSerialized(FabricUtils.serializeItemStackList(itemList));
+        reward.setItemListSerialized(Util.serializeItemStackList(itemList));
         ClockInServer.DBM.createOrUpdateReward(reward);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.set.item.success", key).formatted(Formatting.GREEN), false);
     }
@@ -106,7 +106,7 @@ public class AdminCommand {
     public static void giveRewardToPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         final String key = StringArgumentType.getString(context, "key");
-        Text rewardText = FabricUtils.giveReward(player, key);
+        Text rewardText = Util.giveReward(player, key);
         if(rewardText == null){
             context.getSource().sendFeedback(() -> Text.translatable("command.clockin.reward.get.null", key, player.getName()).formatted(Formatting.RED), false);
         }else{

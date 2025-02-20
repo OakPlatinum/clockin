@@ -2,7 +2,6 @@ package com.hz6826.clockin.server;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.command.CommandManager;
-import com.hz6826.clockin.config.ClockInConfig;
 import com.hz6826.clockin.init.EventRegister;
 import com.hz6826.clockin.sql.DatabaseManager;
 import com.hz6826.clockin.sql.MySQLDatabaseManager;

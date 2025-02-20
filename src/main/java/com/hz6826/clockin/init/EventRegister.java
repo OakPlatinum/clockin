@@ -1,7 +1,7 @@
 package com.hz6826.clockin.init;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.api.FabricUtils;
+import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -36,7 +36,7 @@ public class EventRegister {
                 Text balanceText = Text.literal(String.valueOf(clockInUser.getBalance())).formatted(Formatting.GOLD);
                 Text rankText = Text.literal(String.valueOf(clockInUser.getBalanceRank())).formatted(Formatting.GOLD);
                 player.sendMessage(Text.translatable("command.clockin.init.balance", balanceText, rankText));
-                Text rewardText = FabricUtils.generateReadableReward(ClockInServer.DBM.getRewardOrNew("daily_reward"));
+                Text rewardText = Util.generateReadableReward(ClockInServer.DBM.getRewardOrNew("daily_reward"));
                 if (ClockInServer.DBM.getDailyClockInRecordOrNull(player.getUuidAsString(), Date.valueOf(LocalDate.now())) == null) {
                     Text clockInButton = Text.translatable("command.clockin.init.clockin.button").styled(style -> style
                             .withColor(Formatting.AQUA) // 设置文本颜色

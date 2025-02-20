@@ -1,7 +1,7 @@
 package com.hz6826.clockin.command;
 
-import com.hz6826.clockin.api.FabricUtils;
-import com.hz6826.clockin.config.ClockInConfig;
+import com.hz6826.clockin.ClockIn;
+import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
 import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
@@ -18,10 +18,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class EconomyCommand {
-    public static String CURRENCY_NAME = ClockInConfig.getConfig().getCurrencyName();
+    public static final String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
 
     public static void deposit(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ArrayList<ItemStack> itemList = new ArrayList<>();
@@ -29,13 +28,13 @@ public class EconomyCommand {
         for (int i = 0; i < 36; i++) {  // from inventory
             ItemStack itemStack = inventory.getStack(i);
             if (!itemStack.isEmpty()
-                    && ClockInConfig.getConfig().getPhysicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
+                    && ClockIn.CONFIG.physicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
                 itemList.add(itemStack);
                 inventory.removeStack(i);
             }
         }
         UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
-        int amount = FabricUtils.parsePhysicalMoneyToAmount(itemList);
+        int amount = Util.parsePhysicalMoneyToAmount(itemList);
         user.addBalance(amount);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.deposit", amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
@@ -58,7 +57,7 @@ public class EconomyCommand {
             context.getSource().sendError(Text.translatable("command.clockin.economy.not_enough_money", amount, CURRENCY_NAME));
             return;
         }
-        FabricUtils.givePhysicalMoney(player, amount);
+        Util.givePhysicalMoney(player, amount);
         user.subtractBalance(amount);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.withdraw", amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
     }
