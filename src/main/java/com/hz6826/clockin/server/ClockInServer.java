@@ -2,10 +2,12 @@ package com.hz6826.clockin.server;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.command.CommandManager;
+import com.hz6826.clockin.init.DatabaseConn;
 import com.hz6826.clockin.init.EventRegister;
-import com.hz6826.clockin.sql.DatabaseManager;
-import com.hz6826.clockin.sql.MySQLDatabaseManager;
-import com.hz6826.clockin.sql.SQLiteDatabaseManager;
+import com.hz6826.clockin.sql_old.DatabaseManager;
+import com.hz6826.clockin.sql_old.MySQLDatabaseManager;
+import com.hz6826.clockin.sql_old.SQLiteDatabaseManager;
+import io.ebean.Database;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import org.slf4j.Logger;
 
@@ -15,8 +17,8 @@ public class ClockInServer implements DedicatedServerModInitializer {
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
-    private static final Logger LOGGER = ClockIn.LOGGER;
 	public static DatabaseManager DBM;
+	public static Database DB = null;
 
 	@Override
 	public void onInitializeServer() {
@@ -24,24 +26,13 @@ public class ClockInServer implements DedicatedServerModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		LOGGER.info("Clock In is loading!");
+		ClockIn.LOGGER.info("Clock In is loading!");
 
 		// Initialize config, command manager, and database manager
 
 		CommandManager.bootstrap();
 
-		if (ClockIn.CONFIG.databaseType().equals("mysql")) {
-			DBM = new MySQLDatabaseManager();
-		} else if (ClockIn.CONFIG.databaseType().equals("sqlite")) {
-			DBM = new SQLiteDatabaseManager();
-		}
-		try {
-			DBM.getConn();
-		} catch (SQLException e) {
-            LOGGER.error("Couldn't connect to SQL server! {}", e.getMessage());
-			return;
-		}
-		DBM.createTables();
+		DB = DatabaseConn.bootstrap();
 
 		// Register events
 		EventRegister.bootstrap();

@@ -1,12 +1,11 @@
 package com.hz6826.clockin.api;
 
 import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.config.PhysicalCurrencyUtil;
 import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql.DatabaseManager;
-import com.hz6826.clockin.sql.model.interfaces.MailInterface;
-import com.hz6826.clockin.sql.model.interfaces.RewardInterface;
-import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql_old.DatabaseManager;
+import com.hz6826.clockin.sql_old.model.interfaces.MailInterface;
+import com.hz6826.clockin.sql_old.model.interfaces.RewardInterface;
+import com.hz6826.clockin.sql_old.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -158,7 +157,7 @@ public class Util {
     public static @NotNull ArrayList<ItemStack> parseAmountToPhysicalMoney(int amount){
         ArrayList<ItemStack> itemStackList = new ArrayList<>();
         // Sort the currency items by key (denomination) in descending order
-        List<Map.Entry<Integer, String>> sortedCurrencyItems = PhysicalCurrencyUtil.getPhysicalCurrencyItemIdsSorted();  // TODO
+        List<Map.Entry<Integer, String>> sortedCurrencyItems = PhysicalCurrencyUtil.getPhysicalCurrencyItemIdsSorted();
 
         // Iterate over the sorted currency items
         for (Map.Entry<Integer, String> entry : sortedCurrencyItems) {
@@ -273,14 +272,5 @@ public class Util {
                 .formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE);
         Text monthText = Text.literal(DateTimeFormatter.ofPattern("yyyy.MM").format(LocalDateTime.of(year, month, 1, 0, 0)));
         return Text.translatable("command.clockin.info.calendar.layout.month", previousButton, monthText, nextButton);
-    }
-
-    public static <K, V> K findKeyByValue(Map<K, V> map, V value) {
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (value.equals(entry.getValue())) {
-                return entry.getKey();
-            }
-        }
-        return null; // 如果没有找到对应的键，返回null
     }
 }

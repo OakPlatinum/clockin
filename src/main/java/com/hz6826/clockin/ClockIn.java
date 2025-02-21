@@ -1,6 +1,6 @@
 package com.hz6826.clockin;
 
-import com.hz6826.clockin.config.ClockInConfig;
+import com.hz6826.clockin.init.ClockInConfig;
 import com.hz6826.clockin.item.Coins;
 import net.fabricmc.api.ModInitializer;
 

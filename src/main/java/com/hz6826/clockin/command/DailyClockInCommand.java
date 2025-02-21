@@ -2,7 +2,7 @@ package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql.model.interfaces.DailyClockInRecordInterface;
+import com.hz6826.clockin.sql_old.model.interfaces.DailyClockInRecordInterface;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;

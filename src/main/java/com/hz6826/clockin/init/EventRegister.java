@@ -3,7 +3,7 @@ package com.hz6826.clockin.init;
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql_old.model.interfaces.UserWithAccountAbstract;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;

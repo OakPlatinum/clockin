@@ -3,7 +3,7 @@ package com.hz6826.clockin.command;
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.api.Util;
 import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql_old.model.interfaces.UserWithAccountAbstract;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
