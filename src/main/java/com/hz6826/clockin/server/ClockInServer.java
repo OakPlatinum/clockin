@@ -5,20 +5,13 @@ import com.hz6826.clockin.command.CommandManager;
 import com.hz6826.clockin.init.DatabaseConn;
 import com.hz6826.clockin.init.EventRegister;
 import com.hz6826.clockin.sql_old.DatabaseManager;
-import com.hz6826.clockin.sql_old.MySQLDatabaseManager;
-import com.hz6826.clockin.sql_old.SQLiteDatabaseManager;
-import io.ebean.Database;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import org.slf4j.Logger;
-
-import java.sql.SQLException;
 
 public class ClockInServer implements DedicatedServerModInitializer {
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static DatabaseManager DBM;
-	public static Database DB = null;
 
 	@Override
 	public void onInitializeServer() {
@@ -26,13 +19,13 @@ public class ClockInServer implements DedicatedServerModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		ClockIn.LOGGER.info("Clock In is loading!");
+		ClockIn.LOGGER.info("Clock In (server) is loading!");
 
 		// Initialize config, command manager, and database manager
 
 		CommandManager.bootstrap();
 
-		DB = DatabaseConn.bootstrap();
+		DatabaseConn.bootstrap();
 
 		// Register events
 		EventRegister.bootstrap();

@@ -20,7 +20,7 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 
 public class EconomyCommand {
-    public static final String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
+    public static final String CURRENCY_NAME = ClockIn.CONFIG.getCurrencyName();
 
     public static void deposit(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ArrayList<ItemStack> itemList = new ArrayList<>();
@@ -28,7 +28,7 @@ public class EconomyCommand {
         for (int i = 0; i < 36; i++) {  // from inventory
             ItemStack itemStack = inventory.getStack(i);
             if (!itemStack.isEmpty()
-                    && ClockIn.CONFIG.physicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
+                    && ClockIn.CONFIG.getPhysicalCurrencyItemIds().containsKey(Registries.ITEM.getId(itemStack.getItem()).toString())) {
                 itemList.add(itemStack);
                 inventory.removeStack(i);
             }

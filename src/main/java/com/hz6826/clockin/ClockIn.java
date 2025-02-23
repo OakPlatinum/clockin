@@ -1,7 +1,8 @@
 package com.hz6826.clockin;
 
 import com.hz6826.clockin.init.ClockInConfig;
-import com.hz6826.clockin.item.Coins;
+import com.hz6826.clockin.init.ConfigLoader;
+import com.hz6826.clockin.init.item.Coins;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ public class ClockIn implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final String MOD_ID = "clockin";
     public static final Logger LOGGER = LoggerFactory.getLogger("ClockIn");
-	public static final ClockInConfig CONFIG = ClockInConfig.createAndLoad();
+	public static final ClockInConfig CONFIG = ConfigLoader.load();
 
 	@Override
 	public void onInitialize() {
@@ -21,9 +22,9 @@ public class ClockIn implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		LOGGER.info("Clock In is loading!");
+		LOGGER.info("Clock In (common) is loading!");
 
-		Coins.register();
+		if (CONFIG.enablePhysicalCurrency) Coins.register();
 
 		// Initialize config, command manager, and database manager
 		// CommandManager commandManager = new CommandManager();

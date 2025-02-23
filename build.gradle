@@ -2,6 +2,7 @@ plugins {
 	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
 	id 'io.ebean' version '14.1.0'
+	id 'io.freefair.lombok' version '8.12.1'
 }
 
 version = project.mod_version
@@ -60,19 +61,14 @@ dependencies {
 	// Server Translation API
 	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translation_api_version}")
 
-	// owo-config
-	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
-	// only if you plan to use owo-config
-	annotationProcessor "io.wispforest:owo-lib:${project.owo_version}"
-
-	// include this if you don't want force your users to install owo
-	// sentinel will warn them and give the option to download it automatically
-	include "io.wispforest:owo-sentinel:${project.owo_version}"
+	// config
+	implementation include("com.fasterxml.jackson.core:jackson-databind:2.15.0")
 
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	// Ebean
-	implementation(include("io.ebean:ebean:${project.ebean_version}"))
+	implementation include("io.ebean:ebean:${project.ebean_version}")
+	implementation include("io.ebean:ebean-ddl-generator:${project.ebean_ddl_generator_version}")
 	// query bean generation
 	annotationProcessor "io.ebean:querybean-generator:${project.ebean_version}"
 	testCompileOnly "io.ebean:ebean-test:${project.ebean_version}"

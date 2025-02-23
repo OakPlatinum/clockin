@@ -183,7 +183,7 @@ public class Util {
     public static int parsePhysicalMoneyToAmount(ArrayList<ItemStack> itemStackList){
         int amount = 0;
 
-        Map<String, Integer> currencyMap = ClockIn.CONFIG.physicalCurrencyItemIds();
+        Map<String, Integer> currencyMap = ClockIn.CONFIG.getPhysicalCurrencyItemIds();
 
         for (ItemStack itemStack : itemStackList) {
             int itemCount = itemStack.getCount();

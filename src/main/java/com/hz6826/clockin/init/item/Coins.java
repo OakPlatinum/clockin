@@ -1,4 +1,4 @@
-package com.hz6826.clockin.item;
+package com.hz6826.clockin.init.item;
 
 import com.hz6826.clockin.ClockIn;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;

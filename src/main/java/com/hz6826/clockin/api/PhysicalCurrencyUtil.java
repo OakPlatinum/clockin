@@ -9,13 +9,13 @@ import com.hz6826.clockin.ClockIn;
 
 public class PhysicalCurrencyUtil {
     private static final ConcurrentHashMap<String, List<Map.Entry<Integer, String>>> cache = new ConcurrentHashMap<>();
-    private static volatile int cacheHash = ClockIn.CONFIG.physicalCurrencyItemIds().hashCode();
+    private static volatile int cacheHash = ClockIn.CONFIG.getPhysicalCurrencyItemIds().hashCode();
 
     public static List<Map.Entry<Integer, String>> getPhysicalCurrencyItemIdsSorted() {
-        int currentHash = ClockIn.CONFIG.physicalCurrencyItemIds().hashCode();
+        int currentHash = ClockIn.CONFIG.getPhysicalCurrencyItemIds().hashCode();
         if (currentHash != cacheHash) {
             cacheHash = currentHash;
-            cache.put("sortedCurrencyItems", ClockIn.CONFIG.physicalCurrencyItemIds().entrySet().stream()
+            cache.put("sortedCurrencyItems", ClockIn.CONFIG.getPhysicalCurrencyItemIds().entrySet().stream()
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getValue(), entry.getKey()))
                     .sorted(Map.Entry.<Integer, String>comparingByKey().reversed())
                     .collect(Collectors.toList()));

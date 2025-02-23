@@ -2,9 +2,16 @@ package com.hz6826.clockin.sql;
 
 import io.ebean.Model;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
 public class User extends Model {
     @Id
     private int id;
@@ -33,56 +40,6 @@ public class User extends Model {
         this.playerName = playerName;
         this.balance = balance;
         this.raffleTicket = raffleTicket;
-        this.makeupCard = makeupCard;
-    }
-
-    // Getters and Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
-    }
-
-    public double getBalance() {
-        return balance;
-    }
-
-    public User setBalance(double balance) {
-        this.balance = balance;
-        return this;
-    }
-
-    public int getRaffleTicket() {
-        return raffleTicket;
-    }
-
-    public void setRaffleTicket(int raffleTicket) {
-        this.raffleTicket = raffleTicket;
-    }
-
-    public int getMakeupCard() {
-        return makeupCard;
-    }
-
-    public void setMakeupCard(int makeupCard) {
         this.makeupCard = makeupCard;
     }
 

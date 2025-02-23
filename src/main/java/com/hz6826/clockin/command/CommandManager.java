@@ -202,6 +202,7 @@ public class CommandManager {
                     .then(literal("m").redirect(clockInRootNode.getChild("mail")))
             );
             // </editor-fold>
+            dispatcher.register(literal("cin-test").executes(TestCommand::test));
         }));
     }
 

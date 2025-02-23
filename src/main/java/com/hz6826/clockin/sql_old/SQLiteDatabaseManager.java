@@ -22,7 +22,7 @@ public class SQLiteDatabaseManager implements DatabaseManager{
     private final String url;
 
     public SQLiteDatabaseManager() {
-        String filePathString = ClockIn.CONFIG.sqliteFilePath();
+        String filePathString = ClockIn.CONFIG.getSqliteFilePath();
         url = "jdbc:sqlite:" + filePathString.replace("\\", "/");
         try {
             Connection conn = getConn();

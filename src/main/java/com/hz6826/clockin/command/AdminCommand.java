@@ -20,7 +20,7 @@ import net.minecraft.util.Formatting;
 import java.util.ArrayList;
 
 public class AdminCommand {
-    public static final String CURRENCY_NAME = ClockIn.CONFIG.currencyName();
+    public static final String CURRENCY_NAME = ClockIn.CONFIG.getCurrencyName();
     public static void getReward(CommandContext<ServerCommandSource> context){
         final String key = StringArgumentType.getString(context, "key");
         RewardInterface reward = ClockInServer.DBM.getRewardOrNew(key);

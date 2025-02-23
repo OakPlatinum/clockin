@@ -1,59 +1,93 @@
 package com.hz6826.clockin.sql;
 
-import com.hz6826.clockin.ClockIn;
-import com.hz6826.clockin.init.DatabaseConn;
-import io.ebean.Transaction;
+import io.ebean.DB;
+import io.ebean.annotation.Transactional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 
-import io.ebean.Database;
-
+@SuppressWarnings("unused")  // TODO: WILL BE DELETED
 @Environment(EnvType.SERVER)
 public class DatabaseManager {
-    public DatabaseManager(){
-
-    }
     String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
 
-    // User methods
-    /**
-     * 这两个方法最好分开
-     * 嗯嗯，
-     * 大部分的操作用Database的查询功能一键就能查询了，所以这里只需要包装一些简单的方法就行了
-     * 对了我想把User和EconomyAccount合并下，以后UserWithAccountAbstract改成User吧
-     * 话说一个玩家能有多个EconomyAccount吗，好像没必要实现那玩意吧，倒是，但是感觉搞复杂了
-     * 啊,可以吧多办几张银行卡
-     * 是的,但是改完后user与银行账户强耦合了
-     * 倒确实是，emm，我想想，先合上吧以后要拆开再说
-     *
-     * **/
-
-    {
-        Database db = DatabaseConn.bootstrap();
-        User nu1l = new User(SERVER_UUID, "nu1l", 0, 0, 0);
-        nu1l.save();
-        db.save(nu1l);
-
-        // 查这么写就行了
-        try(Transaction t = db.currentTransaction()){
-
-        } catch (Exception e) {
-
+    @Transactional
+    public static User getOrCreateUser(String uuid, String playerName) {
+        User user = getUserByUUID(uuid);
+        if (user == null) {
+            user = new User(uuid, playerName, 0, 0, 0);
+            user.save();
         }
-        db.createQuery(User.class).where().eq("uuid", SERVER_UUID).findOneOrEmpty()
-                .orElseThrow()
-                .setBalance(100)
-                .save();
-
-        //我看看支不支持链式调用，awa，忘了这个是我们自己写的了，要是我们自己setter设置为返回自身就支持了他怎么设置事务,不然高并发下会出问题
-        //
-
-
-
-
+        return user;
     }
+
+    @Transactional
+    public static User getUserByUUID(String uuid) {
+        return DB.createQuery(User.class).where().eq("uuid", uuid).findOne();
+    }
+
+    @Transactional
+    public static User getUserByName(String playerName) {
+        return DB.createQuery(User.class).where().eq("player_name", playerName).findOne();
+    }
+
+    @Transactional
+    @Deprecated
+    public static void updateUser(User user) {
+        user.update();
+    }
+
+    @Transactional
+    public static List<User> getUsersSortedByBalance() {
+        return DB.createQuery(User.class).orderBy("balance DESC").findList();
+    }
+
+    @Transactional
+    public static List<User> getUsersSortedByRaffleTicket() {
+        return DB.createQuery(User.class).orderBy("raffle_ticket DESC").findList();
+    }
+
+    @Transactional
+    public static DailyClockInRecord getDailyClockInRecordOrNull(String uuid, Date date) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).and().eq("date", date).findOne();
+    }
+
+    @Transactional
+    @Deprecated
+    public static boolean deleteDailyClockInRecord(DailyClockInRecord record) {
+        return record.delete();
+    }
+
+    @Transactional
+    public static int dailyClockIn(String uuid, Date date, Time time) {
+        if (!DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).and().eq("date", date).exists()) {
+            return -1;
+        } else {
+            DailyClockInRecord record = new DailyClockInRecord(date, uuid, time);
+            record.save();
+            return 0;
+        }
+    }
+
+    @Transactional
+    public static List<DailyClockInRecord> getDailyClockInRecords(Date date) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("date", date).findList();
+    }
+
+    @Transactional
+    public static int getPlayerDailyClockInCount(String uuid) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).findCount();
+    }
+
+    @Transactional
+    public static int getPlayerDailyClockInCount(String uuid, int month) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).raw("month(date) = ?", month).findCount();
+    }
+
+    // TODO: WORK IN PROGRESS
 
 
 }

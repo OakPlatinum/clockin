@@ -24,13 +24,13 @@ public class MySQLDatabaseManager implements DatabaseManager{
     private final String password;
 
     public MySQLDatabaseManager() {
-        String host = ClockIn.CONFIG.mysqlHost();
-        int port = ClockIn.CONFIG.mysqlPort();
-        String database = ClockIn.CONFIG.mysqlDatabase();
-        boolean useSSL = ClockIn.CONFIG.mysqlUseSSL();
+        String host = ClockIn.CONFIG.getMysqlHost();
+        int port = ClockIn.CONFIG.getMysqlPort();
+        String database = ClockIn.CONFIG.getMysqlDatabase();
+        boolean useSSL = ClockIn.CONFIG.isMysqlUseSSL();
         url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
-        username = ClockIn.CONFIG.mysqlUsername();
-        password = ClockIn.CONFIG.mysqlPassword();
+        username = ClockIn.CONFIG.getMysqlUsername();
+        password = ClockIn.CONFIG.getMysqlPassword();
         try {
             Connection conn = getConn();
             conn.close();
