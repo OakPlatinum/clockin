@@ -1,7 +1,7 @@
 package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.api.Util;
-import com.hz6826.clockin.server.ClockInServer;
+import com.hz6826.clockin.sql.DatabaseManager;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
@@ -22,7 +22,7 @@ public class MailCommand {
     public static void getMailsWithPage(CommandContext<ServerCommandSource> context) throws CommandSyntaxException
     {
         var player = context.getSource().getPlayerOrThrow();
-        int mailCount = ClockInServer.DBM.getMailCount(player.getUuidAsString());
+        int mailCount = DatabaseManager.getMailCount(player.getUuidAsString());
         if (mailCount == 0) {
             player.sendMessage(Text.translatable("command.clockin.mail.no_mail").formatted(Formatting.GRAY), false);
             return;
@@ -40,7 +40,7 @@ public class MailCommand {
             player.sendMessage(Text.translatable("command.clockin.mail.invalid_page").formatted(Formatting.RED), false);
             return;
         }
-        var mails = ClockInServer.DBM.getMails(player.getUuidAsString(), page, PAGE_SIZE);
+        var mails = DatabaseManager.getMails(player.getUuidAsString(), page, PAGE_SIZE);
         Util.displayMailListTitle(player);
         Util.displayMailList(player, mails);
         Util.displayMailListBottomBar(player, page, pageCount);
@@ -50,7 +50,7 @@ public class MailCommand {
     {
         var player = context.getSource().getPlayerOrThrow();
         int mailId = context.getArgument("mail_id", Integer.class);
-        var mail = ClockInServer.DBM.getMailById(mailId);
+        var mail = DatabaseManager.getMailById(mailId);
         if (mail == null || !mail.getReceiverUuid().equals(player.getUuidAsString())) {
             player.sendMessage(Text.translatable("command.clockin.mail.invalid_mail_id").formatted(Formatting.RED), false);
 
@@ -59,14 +59,14 @@ public class MailCommand {
             if (serializedAttachment == null || serializedAttachment.isBlank()) {
                 player.sendMessage(Text.translatable("command.clockin.mail.no_attachment").formatted(Formatting.RED), false);
             }
-            else if (mail.getAttachmentFetched()) {
+            else if (mail.isAttachmentFetched()) {
                 player.sendMessage(Text.translatable("command.clockin.mail.attachment_already_fetched").formatted(Formatting.RED), false);
             } else {
                 List<ItemStack> itemList = Util.deserializeItemStackList(serializedAttachment);
                 if (player.getInventory().getEmptySlot() == -1 || !Util.giveItemList(itemList, player, false)) {
                     player.sendMessage(Text.translatable("command.clockin.mail.no_slot_for_attachment").formatted(Formatting.RED));
                 } else {
-                    ClockInServer.DBM.setAttachmentFetched(mail);
+                    mail.setAttachmentFetched(true);
                     player.sendMessage(Text.translatable("command.clockin.mail.attachment_fetched").formatted(Formatting.GREEN), false);
                 }
             }

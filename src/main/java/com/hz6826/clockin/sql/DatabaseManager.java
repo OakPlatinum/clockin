@@ -7,12 +7,13 @@ import net.fabricmc.api.Environment;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.List;
 
 @SuppressWarnings("unused")  // TODO: WILL BE DELETED
 @Environment(EnvType.SERVER)
 public class DatabaseManager {
-    String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
+    public static String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
 
     @Transactional
     public static User getOrCreateUser(String uuid, String playerName) {
@@ -62,13 +63,13 @@ public class DatabaseManager {
     }
 
     @Transactional
-    public static int dailyClockIn(String uuid, Date date, Time time) {
+    public static DailyClockInRecord dailyClockIn(String uuid, Date date, Time time) {
         if (!DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).and().eq("date", date).exists()) {
-            return -1;
+            return null;
         } else {
             DailyClockInRecord record = new DailyClockInRecord(date, uuid, time);
             record.save();
-            return 0;
+            return record;
         }
     }
 
@@ -85,6 +86,55 @@ public class DatabaseManager {
     @Transactional
     public static int getPlayerDailyClockInCount(String uuid, int month) {
         return DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).raw("month(date) = ?", month).findCount();
+    }
+
+    @Transactional
+    public static int getPlayerDailyClockInCount(String uuid, Date start, Date end) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("uuid", uuid).between("date", start, end).findCount();
+    }
+
+    @Transactional
+    public static int getPlayerDailyClockInRank(DailyClockInRecord record) {
+        return DB.createQuery(DailyClockInRecord.class).where().eq("date", record).le("time", record.getTime()).findCount();
+    }
+
+    @Transactional
+    public static Reward getRewardOrNull(String key) {
+        return DB.createQuery(Reward.class).where().eq("key", key).findOne();
+    }
+
+    @Deprecated
+    @Transactional
+    public static void sendMail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
+        Mail mail = new Mail(senderUuid, receiverUuid, sendTime, content, serializedAttachment, isRead, isAttachmentFetched);
+        mail.save();
+    }
+
+    @Transactional
+    public static List<Mail> getMails(String receiverUuid, int page, int pageSize) {
+        return DB.createQuery(Mail.class).where().eq("receiver_uuid", receiverUuid).orderBy("send_time DESC").setFirstRow((page - 1) * pageSize).setMaxRows(pageSize).findList();
+    }
+
+    @Deprecated
+    @Transactional
+    public static void setAttachmentFetched(Mail mail) {
+        mail.setAttachmentFetched(true);
+        mail.save();
+    }
+
+    @Transactional
+    public static int getMailCount(String receiverUuid) {
+        return DB.createQuery(Mail.class).where().eq("receiver_uuid", receiverUuid).findCount();
+    }
+
+    @Transactional
+    public static Mail getMailById(int id) {
+        return DB.createQuery(Mail.class).where().eq("id", id).findOne();
+    }
+
+    @Transactional
+    public static int getPlayerBalanceRank(User user) {
+        return DB.createQuery(User.class).where().gt("balance", user.getBalance()).findCount() + 1;
     }
 
     // TODO: WORK IN PROGRESS

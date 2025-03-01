@@ -2,10 +2,10 @@ package com.hz6826.clockin.api;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql_old.DatabaseManager;
-import com.hz6826.clockin.sql_old.model.interfaces.MailInterface;
-import com.hz6826.clockin.sql_old.model.interfaces.RewardInterface;
-import com.hz6826.clockin.sql_old.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql.DatabaseManager;
+import com.hz6826.clockin.sql.Mail;
+import com.hz6826.clockin.sql.Reward;
+import com.hz6826.clockin.sql.User;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -55,7 +55,7 @@ public class Util {
                 itemStack.setNbt(StringNbtReader.parse(s[2]));
                 stackList.add(itemStack);
             } catch (CommandSyntaxException e) {
-                ClockIn.LOGGER.error("Invalid NBT data for item: " + s[0], e);
+                ClockIn.LOGGER.error("Invalid NBT data for item: {}", s[0], e);
             }
         }
         return stackList;
@@ -93,7 +93,7 @@ public class Util {
         return true;
     }
     public static void sendRewardMail(PlayerEntity player, List<ItemStack> stackList, String content) {
-        ClockInServer.DBM.sendMail(DatabaseManager.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false);
+        new Mail(DatabaseManager.SERVER_UUID, player.getUuidAsString(), Timestamp.valueOf(LocalDateTime.now()), content, serializeItemStackList(stackList), false, false).save();
     }
     public static int getCandidateSlot(ItemStack stack, PlayerInventory inv) {
         int candidateSlot = canItemBeAdded(stack, inv);  // FIXME: this only tests for hot-bar slots
@@ -113,7 +113,7 @@ public class Util {
         if (stack.isEmpty()) return;
         player.getInventory().insertStack(slot, stack);
     }
-    public static Text generateReadableReward(RewardInterface reward){
+    public static Text generateReadableReward(Reward reward){
         MutableText text = Text.empty();
         if(!reward.getItemListSerialized().isBlank()) {
             ArrayList<ItemStack> itemStackList = deserializeItemStackList(reward.getItemListSerialized());
@@ -141,11 +141,11 @@ public class Util {
     }
 
     public static Text giveReward(PlayerEntity player, String rewardString) {
-        RewardInterface reward = ClockInServer.DBM.getRewardOrNew(rewardString);
+        Reward reward = DatabaseManager.getRewardOrNull(rewardString);
         Text rewardText = null;
-        if(!reward.isNew()) {
+        if(!(reward == null)) {
             Util.giveItemList(Util.deserializeItemStackList(reward.getItemListSerialized()), player, true);
-            UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
+            User user = DatabaseManager.getUserByUUID(player.getUuidAsString());
             user.addBalance(reward.getMoney());
             user.addRaffleTicket(reward.getRaffleTickets());
             user.addMakeupCard(reward.getMakeupCards());
@@ -204,13 +204,13 @@ public class Util {
         player.sendMessage(Text.translatable("command.clockin.mail.title").formatted(Formatting.GOLD), false);
     }
 
-    public static void displayMailList(PlayerEntity player, List<MailInterface> mailList){
+    public static void displayMailList(PlayerEntity player, List<Mail> mailList){
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         MutableText text = Text.empty();
-        for (MailInterface mail : mailList) {
+        for (Mail mail : mailList) {
             Text senderNameText = (Objects.equals(mail.getSenderUuid(), DatabaseManager.SERVER_UUID) ?
                     Text.translatable("command.clockin.system").formatted(Formatting.GOLD) :
-                    Text.literal(ClockInServer.DBM.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
+                    Text.literal(DatabaseManager.getUserByUUID(mail.getSenderUuid()).getPlayerName()).formatted(Formatting.BLUE)).formatted(Formatting.BOLD);
             MutableText mailText = Text.empty();
             mailText.append(Text.translatable(
                     "command.clockin.mail.content.overview",
@@ -221,7 +221,7 @@ public class Util {
             if(mail.getSerializedAttachment() != null && !mail.getSerializedAttachment().isBlank()) {
                 Text rewardTextTooltip = Util.generateReadableRewardItemList(Util.deserializeItemStackList(mail.getSerializedAttachment()));
                 MutableText rewardText = Text.translatable("command.clockin.mail.content.overview.reward").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, rewardTextTooltip)));
-                if(mail.getAttachmentFetched()){
+                if(mail.isAttachmentFetched()){
                     rewardText = rewardText.formatted(Formatting.GRAY, Formatting.STRIKETHROUGH);
                 } else {
                     rewardText = rewardText.formatted(Formatting.AQUA)

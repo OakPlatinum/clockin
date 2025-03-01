@@ -1,7 +1,6 @@
 package com.hz6826.clockin.sql;
 
 import io.ebean.Model;
-import io.ebean.annotation.DbMigration;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,7 +16,7 @@ import java.sql.Timestamp;
 @Setter
 public class Mail extends Model {
     @Id
-    private int id;
+    private long id;
     @Column(length = 36, nullable = false)
     private String senderUuid;
     @Column(length = 36, nullable = false)
@@ -33,8 +32,7 @@ public class Mail extends Model {
     @Column(nullable = false)
     private boolean isAttachmentFetched;
 
-    public Mail(int id, String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
-        this.id = id;
+    public Mail(String senderUuid, String receiverUuid, Timestamp sendTime, String content, String serializedAttachment, boolean isRead, boolean isAttachmentFetched) {
         this.senderUuid = senderUuid;
         this.receiverUuid = receiverUuid;
         this.sendTime = sendTime;

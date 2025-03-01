@@ -1,8 +1,6 @@
 package com.hz6826.clockin.sql;
 
 import io.ebean.Model;
-import io.ebean.annotation.NotNull;
-import io.ebean.annotation.Length;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -42,20 +40,22 @@ public class Reward extends Model {
     public Reward() {
     }
 
-    public Reward(long id,
-                  String key,
+    public Reward(String key,
                   String translatableKey,
                   String itemListSerialized,
                   double money,
                   int raffleTickets,
                   int makeupCards) {
-        this.id = id;
         this.key = key;
         this.translatableKey = translatableKey;
         this.itemListSerialized = itemListSerialized;
         this.money = money;
         this.raffleTickets = raffleTickets;
         this.makeupCards = makeupCards;
+    }
+
+    public Reward(String key) {
+        this.key = key;
     }
 
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 @Entity
 @Table(name = "users")
@@ -53,5 +54,53 @@ public class User extends Model {
                 ", raffleTicket=" + raffleTicket +
                 ", makeupCard=" + makeupCard +
                 '}';
+    }
+
+    public void addBalance(double amount) {
+        this.balance += amount;
+    }
+
+    public void addRaffleTicket(int amount) {
+        this.raffleTicket += amount;
+    }
+
+    public void addMakeupCard(int amount) {
+        this.makeupCard += amount;
+    }
+
+    public void subtractBalance(double amount) {
+        this.balance -= amount;
+    }
+
+    public void removeRaffleTicket(int amount) {
+        this.raffleTicket -= amount;
+    }
+
+    public void removeMakeupCard(int amount) {
+        this.makeupCard -= amount;
+    }
+
+    public boolean hasEnoughBalance(double amount) {
+        return this.balance >= amount;
+    }
+
+    public boolean hasEnoughRaffleTicket(int amount) {
+        return this.raffleTicket >= amount;
+    }
+
+    public boolean hasEnoughMakeupCard(int amount) {
+        return this.makeupCard >= amount;
+    }
+
+    public boolean equals(@NotNull User user){
+        return this.uuid.equals(user.uuid);
+    }
+
+    public void transferBalance(double amount, User toUser) {
+        if (toUser == null) {
+            return;
+        }
+        this.subtractBalance(amount);
+        toUser.addBalance(amount);
     }
 }

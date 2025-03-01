@@ -2,8 +2,8 @@ package com.hz6826.clockin.command;
 
 import com.hz6826.clockin.ClockIn;
 import com.hz6826.clockin.api.Util;
-import com.hz6826.clockin.server.ClockInServer;
-import com.hz6826.clockin.sql_old.model.interfaces.UserWithAccountAbstract;
+import com.hz6826.clockin.sql.DatabaseManager;
+import com.hz6826.clockin.sql.User;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -33,7 +33,7 @@ public class EconomyCommand {
                 inventory.removeStack(i);
             }
         }
-        UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+        User user = DatabaseManager.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
         int amount = Util.parsePhysicalMoneyToAmount(itemList);
         user.addBalance(amount);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.deposit", amount, CURRENCY_NAME).formatted(Formatting.GREEN), false);
@@ -41,7 +41,7 @@ public class EconomyCommand {
 
     public static void withdraw(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-        UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
+        User user = DatabaseManager.getUserByUUID(player.getUuidAsString());
         int amount = (int) Math.floor(user.getBalance());
         withdrawInner(context, amount);
     }
@@ -52,7 +52,7 @@ public class EconomyCommand {
 
     private static void withdrawInner(CommandContext<ServerCommandSource> context, int amount) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-        UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(player.getUuidAsString());
+        User user = DatabaseManager.getUserByUUID(player.getUuidAsString());
         if (!user.hasEnoughBalance(amount)) {
             context.getSource().sendError(Text.translatable("command.clockin.economy.not_enough_money", amount, CURRENCY_NAME));
             return;
@@ -68,8 +68,8 @@ public class EconomyCommand {
             context.getSource().sendError(Text.translatable("command.clockin.economy.transfer.self"));
             return;
         }
-        UserWithAccountAbstract fromUser = ClockInServer.DBM.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
-        UserWithAccountAbstract toUser = ClockInServer.DBM.getUserByUUID(toPlayer.getUuidAsString());
+        User fromUser = DatabaseManager.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+        User toUser = DatabaseManager.getUserByUUID(toPlayer.getUuidAsString());
         double amount = DoubleArgumentType.getDouble(context, "amount");
         if (!fromUser.hasEnoughBalance(amount)) {
             context.getSource().sendError(Text.translatable("command.clockin.economy.transfer.failed", amount, CURRENCY_NAME));
@@ -80,9 +80,9 @@ public class EconomyCommand {
     }
 
     public static void getBalance(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        UserWithAccountAbstract user = ClockInServer.DBM.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
+        User user = DatabaseManager.getUserByUUID(context.getSource().getPlayerOrThrow().getUuidAsString());
         double balance = user.getBalance();
-        int rank = user.getBalanceRank();
+        int rank = DatabaseManager.getUsersSortedByBalance().indexOf(user);
         context.getSource().sendFeedback(() -> Text.translatable("command.clockin.economy.balance", balance, CURRENCY_NAME, rank).formatted(Formatting.AQUA), false);
     }
 }
