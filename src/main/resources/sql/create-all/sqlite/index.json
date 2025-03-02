@@ -1,0 +1,9 @@
+{
+  "sql_name": "sqlite",
+  "tables": {
+    "users": "User.sql",
+    "rewards": "Reward.sql",
+    "mails": "Mail.sql",
+    "daily_clock_in_records": "DailyClockInRecord.sql"
+  },
+}

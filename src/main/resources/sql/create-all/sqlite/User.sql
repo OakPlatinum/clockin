@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT NOT NULL,
+    player_name TEXT NOT NULL,
+    balance REAL NOT NULL DEFAULT 0,
+    raffle_ticket INTEGER NOT NULL DEFAULT 0,
+    makeup_card INTEGER NOT NULL DEFAULT 0
+);

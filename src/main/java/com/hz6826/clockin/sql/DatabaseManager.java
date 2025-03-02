@@ -13,8 +13,7 @@ import java.util.List;
 @SuppressWarnings("unused")  // TODO: WILL BE DELETED
 @Environment(EnvType.SERVER)
 public class DatabaseManager {
-    public static String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
-
+    public final static String SERVER_UUID = "00000000-0000-0000-0000-000000000000";
     @Transactional
     public static User getOrCreateUser(String uuid, String playerName) {
         User user = getUserByUUID(uuid);

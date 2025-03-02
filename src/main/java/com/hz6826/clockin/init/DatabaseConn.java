@@ -21,19 +21,9 @@ public class DatabaseConn {
                 throw new RuntimeException(m);
             }
         }
-        DatabaseBuilder dbb = Database.builder()
-                .dataSource(getDataSource())
-                .ddlGenerate(true)
-                .ddlRun(true)
-                .ddlCreateOnly(true);
-        Database db;
-        try {
-            db = dbb.build();
-        } catch (Exception e) {
-            ClockIn.LOGGER.warn("ClockIn database table already exists. Skipping...", e);
-            db = dbb.ddlRun(false).build();
-        }
-        return db;
+        DatabaseBuilder dbb = Database.builder().dataSource(getDataSource());
+        if (System.getenv("CLOCKIN_GENERATE_DDL") != null && System.getenv("CLOCKIN_GENERATE_DDL").equalsIgnoreCase("true")) dbb.ddlGenerate(true);  // For development only
+
     }
 
     //
