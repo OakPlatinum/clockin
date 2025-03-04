@@ -5,5 +5,5 @@
     "rewards": "Reward.sql",
     "mails": "Mail.sql",
     "daily_clock_in_records": "DailyClockInRecord.sql"
-  },
+  }
 }
