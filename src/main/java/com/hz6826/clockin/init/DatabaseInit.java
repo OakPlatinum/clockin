@@ -40,7 +40,7 @@ public class DatabaseInit {
 
     private SQLPair sql;
     private Connection connection;
-    private String DataBaseName;
+    private String databaseName;
 
     /*
      *   构造器初始化sql表,并根据数据库类型建立表
