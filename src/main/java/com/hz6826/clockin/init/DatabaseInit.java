@@ -45,7 +45,7 @@ public class DatabaseInit {
     /*
      *   构造器初始化sql表,并根据数据库类型建立表
      * */
-    public DatabaseInit(Connection DBconnection) {
+    public static void DatabaseInit(Connection DBconnection) {
         DatabaseMetaData metaData = null;
         try {
             metaData = DBconnection.getMetaData();
