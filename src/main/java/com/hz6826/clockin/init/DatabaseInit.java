@@ -38,7 +38,7 @@ class sql_list {
 
 public class DatabaseInit {
 
-    private sql_list sql = null;
+    private SQLPair sql;
     private Connection connection;
     private String DataBaseName;
 
