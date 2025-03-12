@@ -26,13 +26,13 @@ import java.sql.Statement;
 /*
  * 储存了sql的信息
  * */
-class sql_list {
+class SQLPair {
     public String dataBaseName;
-    public JsonObject sql_tables;
+    public JsonObject sql_tables;  // ???
 
-    public sql_list(String dataBaseName, JsonObject sql_tables) {
+    public SQLPair(String dataBaseName, JsonObject sql_tables) {
         this.sql_tables = sql_tables;
-        this.dataBaseName = dataBaseName;
+        this.databaseName = databaseName;
     }
 };
 
