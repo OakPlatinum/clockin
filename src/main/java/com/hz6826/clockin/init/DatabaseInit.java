@@ -144,7 +144,7 @@ public class DatabaseInit {
         // 遍历并打印所有数据
 
         String currentKey="";
-        try {
+        try (Connection conn =  ...) {
             for (Map.Entry<String, com.google.gson.JsonElement> entry : entries) {
                 currentKey= entry.getKey();
                 String value = entry.getValue().getAsString(); // 根据值的类型选择合适的方法
